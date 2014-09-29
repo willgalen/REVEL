@@ -2,7 +2,8 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
-import com.datastax.driver.core.{ConsistencyLevel, Session, Statement}
+import com.datastax.driver.core.{Host, ConsistencyLevel, Session, Statement}
+import com.datastax.spark.connector.streaming.{CassandraUtils, CassandraInputDStream}
 import com.datastax.spark.connector.{SomeColumns, AllColumns, ColumnSelector}
 import com.datastax.spark.connector.cql._
 import com.datastax.spark.connector.rdd.partitioner.{CassandraRDDPartitioner, CassandraPartition, CqlTokenRange}
@@ -12,6 +13,9 @@ import com.datastax.spark.connector.types.{ColumnType, TypeConverter}
 import com.datastax.spark.connector.util.{Logging, CountingIterator}
 
 import org.apache.spark.rdd.RDD
+import org.apache.spark.storage.StorageLevel
+import org.apache.spark.streaming.StreamingContext
+import org.apache.spark.streaming.dstream.{DStream, ReceiverInputDStream}
 import org.apache.spark.{Partition, SparkContext, TaskContext}
 
 import scala.collection.JavaConversions._
@@ -363,4 +367,27 @@ class CassandraRDD[R] private[connector] (
     countingIterator
   }
 
+  /** WIP - work in progress, thinking out loud. */
+  /** One DStream for local. */
+  def toDStream(ssc: StreamingContext, storageLevel: StorageLevel): DStream[R] =
+    CassandraUtils.createStream[R](ssc, this, storageLevel)
+
+  /** One unified DStream for all nodes. */
+  def toUnifiedDStream(ssc: StreamingContext, storageLevel: StorageLevel): DStream[R] = {
+    val nodes = connector.withClusterDo { _.getMetadata.getAllHosts}
+    log.info(s"Creating one CassandraReceiver for each node: ${nodes.mkString(",")}")
+    val cassandraStreams = for (n <- 1 to nodes.size()) yield toDStream(ssc, storageLevel)
+    ssc.union(cassandraStreams)
+  }
+
+  /** One DStream per node. */
+  def toDStreams(ssc: StreamingContext, storageLevel: StorageLevel): IndexedSeq[DStream[R]] = {
+    val nodes = connector.withClusterDo { _.getMetadata.getAllHosts}
+    log.info(s"Creating one CassandraReceiver for each node: ${nodes.mkString(",")}")
+    for (n <- 1 to nodes.size()) yield toDStream(ssc, storageLevel)
+  }
+
+  /** INTERNAL API. Cluster node-aware. */
+  private[connector] def nodes: Set[Host] =
+    connector.withClusterDo { _.getMetadata.getAllHosts}.toSet
 }
