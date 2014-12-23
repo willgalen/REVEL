@@ -1,6 +1,6 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
-import java.util.concurrent.{ThreadFactory, TimeUnit, Executors}
+import java.util.concurrent.{Executors, ThreadFactory, TimeUnit}
 
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap

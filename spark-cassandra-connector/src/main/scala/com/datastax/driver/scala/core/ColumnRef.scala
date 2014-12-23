@@ -1,4 +1,4 @@
-package com.datastax.spark.connector
+package com.datastax.driver.scala.core
 
 import scala.language.implicitConversions
 

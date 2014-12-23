@@ -1,8 +1,8 @@
-package com.datastax.spark.connector.util
+package com.datastax.driver.scala.core.utils
 
 import scala.collection.concurrent.TrieMap
 import scala.reflect.runtime.universe._
-import scala.util.{Try, Success, Failure}
+import scala.util.{Failure, Success, Try}
 
 object ReflectionUtil {
   private val rm = runtimeMirror(getClass.getClassLoader)

@@ -1,5 +1,7 @@
 package com.datastax.spark.connector.demo
 
+import com.datastax.driver.scala.core.SomeColumns
+
 import scala.util.matching.Regex
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.{Time, Seconds, StreamingContext}
@@ -7,7 +9,6 @@ import org.apache.spark.streaming.twitter.TwitterUtils
 import org.joda.time.{DateTimeZone, DateTime}
 import twitter4j.auth.Authorization
 import com.datastax.spark.connector.streaming._
-import com.datastax.spark.connector.SomeColumns
 
 class TwitterStreamingHashTagsByInterval extends Serializable {
 

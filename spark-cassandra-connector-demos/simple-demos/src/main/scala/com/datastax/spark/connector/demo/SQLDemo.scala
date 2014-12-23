@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.demo
 
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraConnector
 import org.apache.spark.sql.cassandra.CassandraSQLContext
 
 /** This demo creates a table in Cassandra, populates it with sample data,

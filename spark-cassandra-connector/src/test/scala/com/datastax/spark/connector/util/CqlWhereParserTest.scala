@@ -2,7 +2,8 @@ package com.datastax.spark.connector.util
 
 import java.util.UUID
 
-import com.datastax.spark.connector.util.CqlWhereParser._
+import com.datastax.driver.scala.core.utils.CqlWhereParser
+import CqlWhereParser._
 
 import org.scalatest.{Inside, FlatSpec, Matchers}
 

@@ -1,7 +1,6 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core.conf
 
-import com.datastax.driver.core.{AuthProvider, PlainTextAuthProvider}
-import com.datastax.spark.connector.util.ReflectionUtil
+import com.datastax.driver.scala.core.utils.ReflectionUtil
 import org.apache.spark.SparkConf
 
 /** Stores credentials used to authenticate to a Cassandra cluster and uses them

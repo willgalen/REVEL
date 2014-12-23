@@ -1,11 +1,9 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
+import com.datastax.spark.connector.types.{ColumnType, CounterType}
 import com.datastax.spark.connector.util.Logging
 
-import scala.collection.JavaConversions._
 import scala.language.existentials
-import com.datastax.driver.core.{ColumnMetadata, Metadata, TableMetadata, KeyspaceMetadata}
-import com.datastax.spark.connector.types.{CounterType, ColumnType}
 
 sealed trait ColumnRole
 case object PartitionKeyColumn extends ColumnRole

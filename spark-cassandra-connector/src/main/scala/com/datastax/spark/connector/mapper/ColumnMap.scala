@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.mapper
 
-import com.datastax.spark.connector.ColumnRef
+import com.datastax.driver.scala.core.ColumnRef
 
 /** Associates constructor parameters and property accessors with table columns */
 trait ColumnMap extends Serializable {

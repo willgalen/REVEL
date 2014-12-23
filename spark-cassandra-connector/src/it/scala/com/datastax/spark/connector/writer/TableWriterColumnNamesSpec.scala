@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.{SomeColumns, AllColumns}
+import com.datastax.driver.scala.core.{NamedColumnRef, SomeColumns, AllColumns, CassandraConnector}
+import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.testkit._
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector._

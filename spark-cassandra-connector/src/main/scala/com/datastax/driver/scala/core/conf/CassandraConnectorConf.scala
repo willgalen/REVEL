@@ -1,9 +1,11 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core.conf
 
 import java.net.InetAddress
 
+import com.datastax.driver.scala.core.{CassandraConnectionFactory, DefaultConnectionFactory}
 import com.datastax.spark.connector.util.Logging
 import org.apache.spark.SparkConf
+
 import scala.util.control.NonFatal
 
 /** Stores configuration of a connection to Cassandra.

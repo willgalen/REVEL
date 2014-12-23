@@ -1,8 +1,8 @@
 package com.datastax.spark.connector.japi.rdd;
 
-import com.datastax.spark.connector.cql.CassandraConnector;
+import com.datastax.driver.scala.core.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
-import com.datastax.spark.connector.NamedColumnRef;
+import com.datastax.driver.scala.core.NamedColumnRef;
 import com.datastax.spark.connector.rdd.CassandraRDD;
 import com.datastax.spark.connector.rdd.ReadConf;
 import com.datastax.spark.connector.util.JavaApiHelper;

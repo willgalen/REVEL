@@ -1,7 +1,6 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.ColumnSelector
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.{ColumnSelector, CassandraConnector}
 import org.apache.spark.SparkContext
 
 abstract class WritableToCassandra[T] {

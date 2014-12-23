@@ -2,18 +2,21 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
+import com.datastax.driver.scala.core.utils.CountingIterator
+import com.datastax.driver.scala.core.{Schema, CassandraConnector}
+
 import scala.reflect.ClassTag
 import scala.collection.JavaConversions._
 import scala.language.existentials
 
 import com.datastax.driver.core.{Session, Statement}
-import com.datastax.spark.connector.{SomeColumns, AllColumns, ColumnSelector}
-import com.datastax.spark.connector.cql._
+import com.datastax.spark.connector.SomeColumns
+import com.datastax.driver.scala.core._
 import com.datastax.spark.connector.rdd.partitioner.{CassandraRDDPartitioner, CassandraPartition, CqlTokenRange}
 import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory
 import com.datastax.spark.connector.rdd.reader._
 import com.datastax.spark.connector.types.{ColumnType, TypeConverter}
-import com.datastax.spark.connector.util.{Logging, CountingIterator}
+import com.datastax.spark.connector.util.Logging
 
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, TaskContext}
@@ -27,7 +30,7 @@ import com.datastax.spark.connector._
   * Configuration properties should be passed in the `SparkConf` configuration of `SparkContext`.
   * `CassandraRDD` needs to open connection to Cassandra, therefore it requires appropriate connection property values
   * to be present in `SparkConf`. For the list of required and available properties, see
-  * [[com.datastax.spark.connector.cql.CassandraConnector CassandraConnector]].
+  * [[CassandraConnector CassandraConnector]].
   *
   * `CassandraRDD` divides the dataset into smaller partitions, processed locally on every cluster node.
   * A data partition consists of one or more contiguous token ranges.

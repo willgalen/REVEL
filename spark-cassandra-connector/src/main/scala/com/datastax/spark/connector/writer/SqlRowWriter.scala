@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.TableDef
 import org.apache.spark.sql.catalyst.expressions.Row
 
 /** A [[RowWriter]] that can write [[Row]] objects.*/

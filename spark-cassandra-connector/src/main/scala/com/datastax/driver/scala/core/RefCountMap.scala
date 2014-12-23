@@ -1,7 +1,7 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
-import scala.collection.concurrent.TrieMap
 import scala.annotation.tailrec
+import scala.collection.concurrent.TrieMap
 
 /** Atomically counts references to objects of any type */
 class RefCountMap[T] {

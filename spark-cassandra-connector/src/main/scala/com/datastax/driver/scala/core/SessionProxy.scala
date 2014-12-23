@@ -1,8 +1,8 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
 import java.lang.reflect.{InvocationHandler, InvocationTargetException, Method, Proxy}
 
-import com.datastax.driver.core.{RegularStatement, Session, SimpleStatement}
+import PreparedStatementCache
 
 /** Wraps a `Session` and intercepts:
   *  - `close` method to invoke `afterClose` handler

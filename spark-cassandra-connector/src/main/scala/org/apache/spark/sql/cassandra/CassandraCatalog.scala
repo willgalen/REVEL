@@ -3,7 +3,7 @@ package org.apache.spark.sql.cassandra
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 
-import com.datastax.spark.connector.cql.{CassandraConnector, Schema}
+import com.datastax.driver.scala.core.{Schema, CassandraConnector}
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.apache.spark.sql.catalyst.analysis.Catalog
 import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Subquery}

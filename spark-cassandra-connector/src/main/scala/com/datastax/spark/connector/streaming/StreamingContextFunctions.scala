@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.streaming
 
 import akka.actor.{ActorRef, Actor}
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector.rdd.{ReadConf, ValidRDDType}
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler.StreamingListener

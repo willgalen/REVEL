@@ -1,8 +1,7 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
-import java.lang.reflect.{InvocationTargetException, Proxy, Method, InvocationHandler}
+import java.lang.reflect.{InvocationHandler, InvocationTargetException, Method, Proxy}
 
-import org.apache.cassandra.thrift.Cassandra
 import org.apache.thrift.transport.TTransport
 
 /** Extends `Cassandra.Iface` with `close` method to close the underlying thrift transport */

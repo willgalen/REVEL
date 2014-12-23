@@ -2,8 +2,8 @@ package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.core.ConsistencyLevel;
 import com.datastax.spark.connector.BatchSize;
-import com.datastax.spark.connector.ColumnSelector;
-import com.datastax.spark.connector.cql.CassandraConnector;
+import com.datastax.driver.scala.core.ColumnSelector;
+import com.datastax.driver.scala.core.CassandraConnector;
 import com.datastax.spark.connector.writer.*;
 import org.apache.spark.SparkConf;
 import org.joda.time.DateTime;
@@ -27,7 +27,7 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
     /**
      * Returns the default Cassandra connector instance for the wrapped RDD or DStream.
      *
-     * @return an instance of {@link com.datastax.spark.connector.cql.CassandraConnector}
+     * @return an instance of {@link com.datastax.driver.scala.core.CassandraConnector}
      */
     public abstract CassandraConnector defaultConnector();
 

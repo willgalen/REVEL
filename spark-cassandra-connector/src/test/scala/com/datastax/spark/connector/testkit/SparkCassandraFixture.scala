@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.testkit
 
+import com.datastax.driver.scala.core.CassandraConnector
 import org.scalatest.{BeforeAndAfter, Matchers, WordSpecLike}
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded.EmbeddedCassandra
 
 /** Basic unit test abstraction. */

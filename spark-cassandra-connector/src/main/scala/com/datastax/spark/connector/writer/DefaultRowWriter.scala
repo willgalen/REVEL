@@ -1,8 +1,8 @@
 package com.datastax.spark.connector.writer
 
 import com.datastax.driver.core.{ProtocolVersion, PreparedStatement}
-import com.datastax.spark.connector.{ColumnIndex, ColumnName, ColumnRef}
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.{ColumnRef, TableDef}
+import com.datastax.spark.connector.ColumnIndex
 import com.datastax.spark.connector.mapper.ColumnMapper
 import com.datastax.spark.connector.types.TypeConverter
 

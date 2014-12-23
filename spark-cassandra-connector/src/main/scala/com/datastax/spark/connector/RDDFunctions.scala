@@ -1,6 +1,6 @@
 package com.datastax.spark.connector
 
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
 import com.datastax.spark.connector.writer._
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD

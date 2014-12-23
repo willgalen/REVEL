@@ -1,8 +1,8 @@
 package com.datastax.spark.connector.rdd.reader
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
+import com.datastax.driver.scala.core.{ColumnIndex, NamedColumnRef, ColumnRef, TableDef}
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.TableDef
 import com.datastax.spark.connector.types.TypeConverter
 import com.datastax.spark.connector.util.JavaApiHelper
 

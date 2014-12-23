@@ -1,4 +1,4 @@
-package com.datastax.spark.connector.util
+package com.datastax.driver.scala.core.utils
 
 object MagicalTypeTricks {
 

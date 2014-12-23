@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.sql
 
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector.embedded.SparkTemplate
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.apache.spark.sql.cassandra.CassandraSQLContext

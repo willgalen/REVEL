@@ -3,8 +3,8 @@ package com.datastax.spark.connector.rdd.reader
 import java.lang.reflect.Method
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
+import com.datastax.driver.scala.core.{NamedColumnRef, ColumnRef, TableDef}
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.TableDef
 import com.datastax.spark.connector.mapper._
 import com.datastax.spark.connector.types.{TypeConversionException, TypeConverter}
 import com.datastax.spark.connector.util.JavaApiHelper

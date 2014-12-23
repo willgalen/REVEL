@@ -1,11 +1,12 @@
 package com.datastax.spark.connector.demo
 
+import com.datastax.driver.scala.core.CassandraConnector
+
 import scala.collection.immutable
 import scala.concurrent.duration._
 import akka.actor._
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.streaming.TypedStreamingActor
 import com.datastax.spark.connector.embedded.Event._
 import com.datastax.spark.connector.embedded.Assertions

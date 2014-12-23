@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.mapper
 
-import com.datastax.spark.connector.{ColumnRef, ColumnIndex}
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.{ColumnIndex, ColumnRef, TableDef}
+import com.datastax.spark.connector.ColumnIndex
 
 import scala.reflect.ClassTag
 

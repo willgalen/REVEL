@@ -1,7 +1,6 @@
 package com.datastax.spark.connector.mapper
 
-import com.datastax.spark.connector.ColumnName
-import com.datastax.spark.connector.cql.{RegularColumn, TableDef, ColumnDef}
+import com.datastax.driver.scala.core.{ColumnName, TableDef, ColumnDef, RegularColumn}
 import com.datastax.spark.connector.types.IntType
 import org.apache.commons.lang3.SerializationUtils
 import org.junit.Assert._

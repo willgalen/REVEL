@@ -2,6 +2,9 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
+import com.datastax.driver.scala.core.utils.CqlWhereParser
+import com.datastax.driver.scala.core.{TableDef, CassandraConnector}
+
 import scala.collection.JavaConversions._
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.forkjoin.ForkJoinPool
@@ -10,12 +13,9 @@ import org.apache.cassandra.thrift
 import org.apache.cassandra.thrift.Cassandra
 import org.apache.spark.Partition
 import org.apache.thrift.TApplicationException
-
-import com.datastax.spark.connector.cql.{CassandraConnector, TableDef}
 import com.datastax.spark.connector.rdd._
 import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, Token, TokenFactory}
-import com.datastax.spark.connector.util.CqlWhereParser
-import com.datastax.spark.connector.util.CqlWhereParser._
+import CqlWhereParser._
 
 /** Creates CassandraPartitions for given Cassandra table */
 class CassandraRDDPartitioner[V, T <: Token[V]](

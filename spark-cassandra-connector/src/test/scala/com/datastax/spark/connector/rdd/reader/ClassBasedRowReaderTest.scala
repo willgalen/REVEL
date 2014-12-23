@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.rdd.reader
 
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.TableDef
 import org.apache.commons.lang3.SerializationUtils
 import org.junit.Test
 

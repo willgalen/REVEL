@@ -1,9 +1,10 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
+import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.spark.connector.embedded._
+import com.datastax.spark.connector.testkit._
 import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
-import com.datastax.spark.connector.testkit._
-import com.datastax.spark.connector.embedded._
 
 case class KeyValue(key: Int, group: Long, value: String)
 case class KeyValueWithConversion(key: String, group: Int, value: Long)

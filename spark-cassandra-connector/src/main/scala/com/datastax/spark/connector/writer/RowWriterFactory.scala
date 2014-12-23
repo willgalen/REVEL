@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.TableDef
 import com.datastax.spark.connector.mapper.ColumnMapper
 
 import scala.reflect.ClassTag

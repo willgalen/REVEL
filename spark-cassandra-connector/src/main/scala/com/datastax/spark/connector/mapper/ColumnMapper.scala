@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.mapper
 
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.TableDef
 
 import scala.reflect.ClassTag
 

@@ -2,8 +2,8 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
+import com.datastax.driver.scala.core.{ColumnName, CassandraConnector}
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.japi.CassandraJavaUtil
 import com.datastax.spark.connector.testkit._

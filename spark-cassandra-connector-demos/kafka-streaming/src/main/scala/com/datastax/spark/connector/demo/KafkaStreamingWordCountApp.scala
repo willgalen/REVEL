@@ -1,5 +1,7 @@
 package com.datastax.spark.connector.demo
 
+import com.datastax.driver.scala.core.CassandraConnector
+
 import scala.sys.process._
 import scala.util.Try
 import kafka.serializer.StringDecoder
@@ -9,7 +11,6 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.streaming._
 import org.apache.spark.streaming.StreamingContext._
 import org.apache.spark.streaming.kafka._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.util.Logging
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector._

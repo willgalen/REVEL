@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.streaming
 
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.{ColumnSelector, AllColumns}
+import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
+import com.datastax.spark.connector.AllColumns
 
 import scala.reflect.ClassTag
 import org.apache.spark.streaming.StreamingContext

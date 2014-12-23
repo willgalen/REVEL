@@ -1,5 +1,6 @@
 package org.apache.spark.sql.cassandra
 
+import com.datastax.driver.scala.core.NamedColumnRef
 import com.datastax.spark.connector._
 import org.apache.spark.Logging
 import org.apache.spark.annotation.DeveloperApi

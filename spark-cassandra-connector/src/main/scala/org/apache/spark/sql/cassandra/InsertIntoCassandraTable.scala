@@ -1,7 +1,7 @@
 package org.apache.spark.sql.cassandra
 
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.SqlRowWriter
 import org.apache.spark.annotation.DeveloperApi
 import org.apache.spark.rdd.RDD

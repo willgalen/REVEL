@@ -2,7 +2,7 @@ package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.core.ProtocolVersion;
 import com.datastax.driver.core.Row;
-import com.datastax.spark.connector.cql.TableDef;
+import com.datastax.driver.scala.core.TableDef;
 import com.datastax.spark.connector.rdd.reader.RowReader;
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory;
 import com.datastax.spark.connector.rdd.reader.RowReaderOptions;

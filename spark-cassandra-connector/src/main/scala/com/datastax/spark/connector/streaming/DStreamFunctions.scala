@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.streaming
 
+import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.writer.{TableWriter, WriteConf, RowWriterFactory, WritableToCassandra}
 import org.apache.spark.SparkContext
 import org.apache.spark.streaming.dstream.DStream

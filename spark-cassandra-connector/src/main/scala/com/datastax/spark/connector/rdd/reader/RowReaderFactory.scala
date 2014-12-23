@@ -3,11 +3,12 @@ package com.datastax.spark.connector.rdd.reader
 import java.io.Serializable
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
+import com.datastax.driver.scala.core.TableDef
+import com.datastax.driver.scala.core.utils.MagicalTypeTricks
 import com.datastax.spark.connector.CassandraRow
-import com.datastax.spark.connector.cql.TableDef
 import com.datastax.spark.connector.mapper.ColumnMapper
 import com.datastax.spark.connector.types.TypeConverter
-import com.datastax.spark.connector.util.MagicalTypeTricks.{DoesntHaveImplicit, IsNotSubclassOf}
+import MagicalTypeTricks.{DoesntHaveImplicit, IsNotSubclassOf}
 
 import scala.annotation.implicitNotFound
 import scala.reflect.runtime.universe._

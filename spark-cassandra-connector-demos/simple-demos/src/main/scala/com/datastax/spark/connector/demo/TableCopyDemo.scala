@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.demo
 
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraConnector
 
 object TableCopyDemo extends DemoApp {
 

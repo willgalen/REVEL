@@ -1,7 +1,8 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core.conf
 
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
-import org.scalatest.{Matchers, FlatSpec}
+import org.scalatest.{FlatSpec, Matchers}
 
 class CassandraAuthenticatedConnectorSpec  extends FlatSpec with Matchers with SharedEmbeddedCassandra {
 

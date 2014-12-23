@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.writer
 
+import com.datastax.driver.scala.core.TableDef
 import com.datastax.spark.connector.CassandraRow
-import com.datastax.spark.connector.cql.TableDef
 
 /** A [[RowWriter]] that can write [[CassandraRow]] objects.*/
 class GenericRowWriter(table: TableDef, selectedColumns: Seq[String])

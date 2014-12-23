@@ -1,10 +1,9 @@
 package com.datastax.spark.connector.japi;
 
 import akka.japi.JAPI;
+import com.datastax.driver.scala.core.*;
 import com.datastax.spark.connector.*;
-import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.mapper.*;
-import com.datastax.spark.connector.rdd.*;
 import com.datastax.spark.connector.rdd.reader.ClassBasedRowReaderFactory;
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory;
 import com.datastax.spark.connector.rdd.reader.ValueRowReaderFactory;

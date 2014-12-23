@@ -1,5 +1,6 @@
 package com.datastax.spark
 
+import com.datastax.driver.scala.core.{WriteTime, TTL, ColumnName, NamedColumnRef}
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 

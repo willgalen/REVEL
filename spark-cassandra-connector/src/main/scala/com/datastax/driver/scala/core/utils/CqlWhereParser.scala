@@ -1,6 +1,9 @@
-package com.datastax.spark.connector.util
+package com.datastax.driver.scala.core.utils
 
 import java.util.UUID
+
+import com.datastax.spark.connector.util.Logging
+
 import scala.util.parsing.combinator.RegexParsers
 
 object CqlWhereParser extends RegexParsers with Logging {

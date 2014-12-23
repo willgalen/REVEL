@@ -1,14 +1,12 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
 import java.io.IOException
 import java.net.InetAddress
 
-import scala.collection.JavaConversions._
-
-import org.apache.spark.SparkConf
-
-import com.datastax.driver.core.{Cluster, Host, Session}
+import com.datastax.driver.scala.core.policies.LocalNodeFirstLoadBalancingPolicy
+import com.datastax.driver.scala.core.conf.{CassandraConnectorConf, AuthConfFactory, NoAuthConf, AuthConf}
 import com.datastax.spark.connector.util.Logging
+import org.apache.spark.SparkConf
 
 
 /** Provides and manages connections to Cassandra.
@@ -45,8 +43,6 @@ import com.datastax.spark.connector.util.Logging
   */
 class CassandraConnector(conf: CassandraConnectorConf)
   extends Serializable with Logging {
-
-  import com.datastax.spark.connector.cql.CassandraConnector._
 
   private[this] var _config = conf
 

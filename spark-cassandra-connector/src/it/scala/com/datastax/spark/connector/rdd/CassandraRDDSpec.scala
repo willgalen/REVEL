@@ -3,12 +3,12 @@ package com.datastax.spark.connector.rdd
 import java.io.IOException
 import java.util.Date
 
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector.mapper.DefaultColumnMapper
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.scalatest.{FlatSpec, Matchers}
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.types.TypeConverter
 import com.datastax.spark.connector.embedded._
 

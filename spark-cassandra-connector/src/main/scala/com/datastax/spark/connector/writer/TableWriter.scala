@@ -3,9 +3,10 @@ package com.datastax.spark.connector.writer
 import java.io.IOException
 
 import com.datastax.driver.core.{BatchStatement, PreparedStatement, Session}
+import com.datastax.driver.scala.core.utils.CountingIterator
+import com.datastax.driver.scala.core._
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql._
-import com.datastax.spark.connector.util.{CountingIterator, Logging}
+import com.datastax.spark.connector.util.Logging
 import org.apache.spark.TaskContext
 
 import scala.collection._

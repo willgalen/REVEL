@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.rdd.reader
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.TableDef
 
 class KeyValueRowReaderFactory[K, V](keyRRF: RowReaderFactory[K], valueRRF: RowReaderFactory[V])
   extends RowReaderFactory[(K, V)] {

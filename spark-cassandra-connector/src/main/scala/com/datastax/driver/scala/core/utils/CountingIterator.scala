@@ -1,4 +1,4 @@
-package com.datastax.spark.connector.util
+package com.datastax.driver.scala.core.utils
 
 /** Counts elements fetched form the underlying iterator. */
 class CountingIterator[T](iterator: Iterator[T]) extends Iterator[T] {

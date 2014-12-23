@@ -1,8 +1,8 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import com.datastax.spark.connector.embedded._
+import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.scalatest.{FlatSpec, Matchers}
 
 class CassandraPartitionKeyWhereSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {

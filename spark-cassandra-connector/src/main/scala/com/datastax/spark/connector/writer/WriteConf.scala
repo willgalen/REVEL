@@ -1,11 +1,10 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.cql.{RegularColumn, ColumnDef}
+import com.datastax.driver.scala.core.{ColumnDef, RegularColumn}
 import com.datastax.spark.connector.types.ColumnType
 import com.datastax.spark.connector.{BytesInBatch, RowsInBatch, BatchSize}
 import org.apache.commons.configuration.ConfigurationException
 import org.apache.spark.SparkConf
-
 import com.datastax.driver.core.{DataType, ConsistencyLevel}
 
 /** Write settings for RDD

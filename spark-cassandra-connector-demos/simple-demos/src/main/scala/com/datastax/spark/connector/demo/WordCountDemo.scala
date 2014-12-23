@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.demo
 
+import com.datastax.driver.scala.core.CassandraConnector
 import org.apache.spark.SparkContext._
-import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector._
 
 object WordCountDemo extends DemoApp {

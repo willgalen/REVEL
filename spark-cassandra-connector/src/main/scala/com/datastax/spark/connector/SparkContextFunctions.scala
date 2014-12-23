@@ -1,6 +1,6 @@
 package com.datastax.spark.connector
 
-import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraConnector
 import com.datastax.spark.connector.rdd.{ReadConf, ValidRDDType, CassandraRDD}
 import com.datastax.spark.connector.rdd.reader.RowReaderFactory
 import org.apache.spark.SparkContext

@@ -2,8 +2,8 @@ package com.datastax.spark.connector.mapper
 
 import java.lang.reflect.{Constructor, Method}
 
-import com.datastax.spark.connector.{ColumnRef, ColumnName}
-import com.datastax.spark.connector.cql.TableDef
+import com.datastax.driver.scala.core.{ColumnName, ColumnRef, TableDef}
+import com.datastax.spark.connector.ColumnName
 import com.datastax.spark.connector.rdd.reader.AnyObjectFactory
 import org.apache.commons.lang.StringUtils
 

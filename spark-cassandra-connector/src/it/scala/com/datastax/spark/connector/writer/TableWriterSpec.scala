@@ -2,6 +2,7 @@ package com.datastax.spark.connector.writer
 
 import java.io.IOException
 
+import com.datastax.driver.scala.core.{SomeColumns, CassandraConnector}
 import com.datastax.spark.connector.mapper.DefaultColumnMapper
 
 import scala.collection.JavaConversions._
@@ -9,8 +10,6 @@ import scala.collection.JavaConversions._
 import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.SomeColumns
 import com.datastax.spark.connector.types.TypeConverter
 import com.datastax.spark.connector.testkit._
 import com.datastax.spark.connector.embedded._

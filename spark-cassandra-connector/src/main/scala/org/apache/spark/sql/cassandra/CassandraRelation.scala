@@ -1,11 +1,10 @@
 package org.apache.spark.sql.cassandra
 
-import com.datastax.spark.connector
-import com.datastax.spark.connector.cql.{ColumnDef, TableDef}
-
 import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
 import org.apache.spark.sql.catalyst.plans.logical.LeafNode
 import org.apache.spark.sql.catalyst
+import com.datastax.driver.scala.core.{TableDef, ColumnDef}
+import com.datastax.spark.connector
 
 private[cassandra] case class CassandraRelation
   (tableDef: TableDef, alias: Option[String])(@transient cc: CassandraSQLContext)

@@ -1,6 +1,8 @@
 package com.datastax.spark.connector.util
 
-import com.datastax.spark.connector.cql.{CassandraConnectorConf, DefaultConnectionFactory, CassandraConnectionFactory}
+import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.driver.scala.core.utils.ReflectionUtil
+import com.datastax.driver.scala.core.{DefaultConnectionFactory, CassandraConnectionFactory}
 import org.scalatest.{FlatSpec, Matchers}
 
 class ReflectionUtilSpec extends FlatSpec with Matchers {

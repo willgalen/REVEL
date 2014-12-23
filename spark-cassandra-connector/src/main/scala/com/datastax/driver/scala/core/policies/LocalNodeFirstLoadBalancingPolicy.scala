@@ -1,17 +1,16 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core.policies
 
-import com.datastax.driver.core.policies.LoadBalancingPolicy
-import com.datastax.driver.core.{Statement, Cluster, HostDistance, Host}
 import java.net.{InetAddress, NetworkInterface}
-import scala.collection.JavaConversions._
-import scala.util.Random
 
 import org.apache.spark.Logging
+
+import scala.collection.JavaConversions._
+import scala.util.Random
 
 /** Selects local node first and then nodes in local DC in random order. Never selects nodes from other DCs. */
 class LocalNodeFirstLoadBalancingPolicy(contactPoints: Set[InetAddress], localDC: Option[String] = None) extends LoadBalancingPolicy with Logging {
 
-  import LocalNodeFirstLoadBalancingPolicy._
+  import com.datastax.driver.scala.core.policies.LocalNodeFirstLoadBalancingPolicy._
 
   private var nodes = Set.empty[Host]
   private var dcToUse = ""

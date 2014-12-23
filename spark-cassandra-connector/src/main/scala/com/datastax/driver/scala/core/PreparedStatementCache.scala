@@ -1,6 +1,5 @@
-package com.datastax.spark.connector.cql
+package com.datastax.driver.scala.core
 
-import com.datastax.driver.core.{RegularStatement, Session, Cluster, PreparedStatement}
 import com.datastax.spark.connector.util.Logging
 
 import scala.collection.concurrent.TrieMap
