@@ -1,9 +1,8 @@
 package com.datastax.driver.scala.core
 
 import java.net.InetAddress
-import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.driver.scala.core.conf._
 import com.datastax.driver.scala.core.utils.ReflectionUtil
-import org.apache.spark.SparkConf
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TTransport
 
@@ -79,11 +78,18 @@ object DefaultConnectionFactory extends CassandraConnectionFactory {
 /** Entry point for obtaining `CassandraConnectionFactory` object from `SparkConf`,
   * used when establishing connections to Cassandra. */
 object CassandraConnectionFactory {
-  val ConnectionFactoryProperty = "spark.cassandra.connection.factory"
+  import settings._
 
+  def apply(): CassandraConnectionFactory = apply(ConnectionFactoryFQCN)
+
+  def apply(fqcn: Option[String]): CassandraConnectionFactory =
+    fqcn.map(ReflectionUtil.findGlobalObject[CassandraConnectionFactory])
+      .getOrElse(DefaultConnectionFactory)
+
+/*
   def fromSparkConf(conf: SparkConf): CassandraConnectionFactory = {
-    conf.getOption(ConnectionFactoryProperty)
+    conf.getOption(ConnectionFactory)
       .map(ReflectionUtil.findGlobalObject[CassandraConnectionFactory])
       .getOrElse(DefaultConnectionFactory)
-  }
+  }*/
 }

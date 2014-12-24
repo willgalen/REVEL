@@ -1,14 +1,15 @@
 package com.datastax.driver.scala.core.conf
 
+import com.datastax.driver.core.{AuthProvider, PlainTextAuthProvider}
+import com.datastax.driver.scala.core.util.ReflectionUtil
 import com.datastax.driver.scala.core.utils.ReflectionUtil
-import org.apache.spark.SparkConf
 
 /** Stores credentials used to authenticate to a Cassandra cluster and uses them
   * to configure a Cassandra connection.
   * This driver provides implementations [[NoAuthConf]] for no authentication
   * and [[PasswordAuthConf]] for password authentication. Other authentication
-  * configurators can be plugged in by setting `cassandra.authentication.conf.factory.class`
-  * option. See [[AuthConfFactory]]. */
+  * configurators can be plugged in by setting `cassandra.auth.conf.class`
+  * option. See [[AuthConf]]. */
 trait AuthConf extends Serializable {
 
   /** Returns auth provider to be passed to the `Cluster.Builder` object. */
@@ -32,43 +33,31 @@ case class PasswordAuthConf(user: String, password: String) extends AuthConf {
   override def thriftCredentials: Map[String, String] = Map("username" -> user, "password" -> password)
 }
 
-/** Obtains authentication configuration by reading  `SparkConf` object. */
-trait AuthConfFactory {
-  def authConf(conf: SparkConf): AuthConf
-}
-
-/** Default `AuthConfFactory` that supports no authentication or password authentication.
-  * Password authentication is enabled when both `spark.cassandra.auth.username` and `spark.cassandra.auth.password`
-  * options are present in `SparkConf`.*/
-object DefaultAuthConfFactory extends AuthConfFactory {
-
-  val CassandraUserNameProperty = "spark.cassandra.auth.username"
-  val CassandraPasswordProperty = "spark.cassandra.auth.password"
-
-  def authConf(conf: SparkConf): AuthConf = {
-    val credentials =
-      for (username <- conf.getOption(CassandraUserNameProperty);
-           password <- conf.getOption(CassandraPasswordProperty)) yield (username, password)
-
-    credentials match {
-      case Some((user, password)) => PasswordAuthConf(user, password)
-      case None => NoAuthConf
-    }
-  }
-}
-
-/** Entry point for obtaining `AuthConf` object from `SparkConf`, used when establishing connections to Cassandra.
-  * The actual `AuthConf` creation is delegated to the [[AuthConfFactory]] pointed by `spark.cassandra.auth.conf.factory` property. */
+/** Entry point for obtaining `AuthConf` object when establishing connections to Cassandra.
+  * Supports no authentication or password authentication. Password authentication is
+  * enabled when both `cassandra.auth.username` and `cassandra.auth.password` options are set.*/
 object AuthConf {
-  val AuthConfFactoryProperty = "spark.cassandra.auth.conf.factory"
+  import settings._
 
-  def fromSparkConf(conf: SparkConf) = {
-    val authConfFactory = conf
-      .getOption(AuthConfFactoryProperty)
-      .map(ReflectionUtil.findGlobalObject[AuthConfFactory])
-      .getOrElse(DefaultAuthConfFactory)
+  /** Attempts to read credentials from java system properties. */
+  def apply: AuthConf = apply(CassandraUserName, CassandraPassword)
 
-    authConfFactory.authConf(conf)
+  def apply(username: Option[String], password: Option[String]): AuthConf = {
+    def default: AuthConf = {
+      val credentials =
+        for (usr <- username;
+             pwd <- password) yield (usr, pwd)
+
+      credentials match {
+        case Some((user, pass)) => PasswordAuthConf(user, pass)
+        case None => NoAuthConf
+      }
+    }
+
+    AuthConfFactoryClassName
+      .map(ReflectionUtil.findGlobalObject[AuthConf])
+      .getOrElse(default)
+
   }
 }
 

@@ -193,11 +193,6 @@ object CassandraConnector extends Logging {
     }
   }))
 
-  /** Returns a CassandraConnector created from properties found in the `SparkConf` object */
-  def apply(conf: SparkConf): CassandraConnector = {
-    new CassandraConnector(CassandraConnectorConf(conf))
-  }
-
   /** Returns a CassandraConnector created from explicitly given connection configuration. */
   def apply(hosts: Set[InetAddress],
             nativePort: Int = CassandraConnectorConf.DefaultNativePort,
