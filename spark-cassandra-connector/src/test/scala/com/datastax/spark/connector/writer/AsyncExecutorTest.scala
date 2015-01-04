@@ -3,6 +3,7 @@ package com.datastax.spark.connector.writer
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{Callable, Executors}
 
+import com.datastax.driver.scala.core.io.AsyncExecutor
 import com.google.common.util.concurrent.MoreExecutors
 import org.junit.Assert._
 import org.junit.Test

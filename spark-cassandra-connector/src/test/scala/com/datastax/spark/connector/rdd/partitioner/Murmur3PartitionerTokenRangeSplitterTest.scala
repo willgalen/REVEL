@@ -2,14 +2,16 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, LongToken}
-import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory.Murmur3TokenFactory
+import com.datastax.driver.scala.core.partition
+import com.datastax.driver.scala.core.partition.{TokenFactory, LongToken, CassandraNode}
+import TokenFactory.Murmur3TokenFactory
+import com.datastax.spark.connector.rdd.partitioner
 import org.junit.Assert._
 import org.junit.Test
 
 class Murmur3PartitionerTokenRangeSplitterTest {
 
-  type TokenRange = com.datastax.spark.connector.rdd.partitioner.dht.TokenRange[Long, LongToken]
+  type TokenRange = partition.TokenRange[Long, LongToken]
 
   private def assertNoHoles(tokenRanges: Seq[TokenRange]) {
     for (Seq(range1, range2) <- tokenRanges.sliding(2))
@@ -21,8 +23,8 @@ class Murmur3PartitionerTokenRangeSplitterTest {
     val node = CassandraNode(InetAddress.getLocalHost, InetAddress.getLocalHost)
     val splitter = new Murmur3PartitionerTokenRangeSplitter(2.0)
     val range = new TokenRange(
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(0),
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(100),
+      new LongToken(0),
+      new LongToken(100),
       Set(node), None)
     val out = splitter.split(range, 20)
 
@@ -39,7 +41,7 @@ class Murmur3PartitionerTokenRangeSplitterTest {
   def testNoSplit() {
     val splitter = new Murmur3PartitionerTokenRangeSplitter(2.0)
     val range = new TokenRange(
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(0), new LongToken(100), Set.empty, None)
+      new LongToken(0), new LongToken(100), Set.empty, None)
     val out = splitter.split(range, 500)
 
     // range is too small to contain 500 rows
@@ -52,7 +54,7 @@ class Murmur3PartitionerTokenRangeSplitterTest {
   def testZeroRows() {
     val splitter = new Murmur3PartitionerTokenRangeSplitter(0.0)
     val range = new TokenRange(
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(0), new LongToken(100), Set.empty, None)
+      new LongToken(0), new LongToken(100), Set.empty, None)
     val out = splitter.split(range, 500)
     assertEquals(1, out.size)
     assertEquals(0L, out.head.start.value)
@@ -65,8 +67,8 @@ class Murmur3PartitionerTokenRangeSplitterTest {
     val maxValue = Murmur3TokenFactory.maxToken.value
     val minValue = Murmur3TokenFactory.minToken.value
     val range = new TokenRange(
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(maxValue - 100),
-      new com.datastax.spark.connector.rdd.partitioner.dht.LongToken(minValue + 100), Set.empty, None)
+      new LongToken(maxValue - 100),
+      new LongToken(minValue + 100), Set.empty, None)
     val splits = splitter.split(range, 20)
     assertEquals(20, splits.size)
     assertEquals(maxValue - 100, splits.head.start.value)

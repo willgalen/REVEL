@@ -2,7 +2,7 @@ package com.datastax.spark.connector.rdd
 
 import java.io.{Serializable => JavaSerializable}
 
-import com.datastax.spark.connector.types.TypeConverter
+import com.datastax.driver.scala.types.TypeConverter
 
 import scala.annotation.implicitNotFound
 

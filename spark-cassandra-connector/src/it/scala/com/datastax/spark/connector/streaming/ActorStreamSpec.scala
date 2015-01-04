@@ -2,22 +2,23 @@ package com.datastax.spark.connector.streaming
 
 import akka.actor.{ActorSystem, Props, Terminated}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.datastax.driver.scala.core.CassandraConnector
-import com.datastax.spark.connector.RowsInBatch
+import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.streaming.StreamingEvent.ReceiverStarted
 import com.datastax.spark.connector.testkit._
-import com.datastax.spark.connector.writer.WriteConf
 import org.apache.spark.SparkEnv
 import org.apache.spark.storage.StorageLevel
 import org.apache.spark.streaming.StreamingContext.toPairDStreamFunctions
 import org.apache.spark.streaming.{Milliseconds, StreamingContext}
 
 class ActorStreamingSpec extends ActorSpec with CounterFixture with ImplicitSender {
-  import com.datastax.spark.connector.testkit.TestEvent._
+  import TestEvent._
+
+  val config = CassandraConnectorConf(cassandraHost)
 
   /* Initializations - does not work in the actor test context in a static before() */
-  CassandraConnector(SparkTemplate.conf).withSessionDo { session =>
+  SparkCassandraConnector(config).withSessionDo { session =>
     session.execute("CREATE KEYSPACE IF NOT EXISTS demo WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1 }")
     session.execute("CREATE TABLE IF NOT EXISTS demo.streaming_wordcount (word TEXT PRIMARY KEY, count COUNTER)")
     session.execute("TRUNCATE demo.streaming_wordcount")

@@ -3,6 +3,8 @@ package com.datastax.spark.connector.writer
 import java.util.Date
 import java.util.concurrent.TimeUnit
 
+import com.datastax.driver.scala.core.PerRowWriteOption
+import com.datastax.driver.scala.core.io.{TimestampOption, TTLOption, PerRowWriteOption, StaticWriteOption}
 import org.apache.spark.streaming.{Duration => SparkDuration}
 import org.joda.time.{DateTime, Duration => JodaDuration}
 import org.scalatest.{FlatSpec, Matchers}

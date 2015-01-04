@@ -1,9 +1,13 @@
 package com.datastax.driver.scala.core
 
-import com.datastax.spark.connector.types.{ColumnType, CounterType}
-import com.datastax.spark.connector.util.Logging
+import java.io.IOException
 
 import scala.language.existentials
+
+import scala.collection.JavaConversions._
+import com.datastax.driver.core.{ColumnMetadata, Metadata, TableMetadata, KeyspaceMetadata}
+import com.datastax.driver.scala.types.{ColumnType, CounterType}
+import com.datastax.driver.scala.core.utils.Logging
 
 sealed trait ColumnRole
 case object PartitionKeyColumn extends ColumnRole
@@ -53,8 +57,30 @@ case class TableDef(keyspaceName: String,
   lazy val primaryKey = partitionKey ++ clusteringColumns
   lazy val allColumns = primaryKey ++ regularColumns
   lazy val columnByName = allColumns.map(c => (c.columnName, c)).toMap
-}
 
+  private[io] def appendRegularColumns(options: Seq[ColumnDef]): TableDef =
+    copy(regularColumns = regularColumns ++ options)
+
+  def selectedColumns(columnsToUse: ColumnSelector): Seq[String] =
+    columnsToUse match {
+      case SomeColumns(names @ _*) => names.map {
+        case ColumnName(columnName) => columnName
+        case TTL(_) | WriteTime(_) =>
+          throw new IllegalArgumentException(
+            s"Neither TTL nor WriteTime fields are not supported for writing. " +
+              s"Use appropriate write configuration settings to specify TTL or WriteTime.")
+      }
+      case AllColumns => allColumns.map(_.columnName).toSeq
+    }
+
+}
+object TableDef {
+  def apply(connector: CassandraConnector, keyspaceName: String, tableName: String): TableDef = {
+    Schema.fromCassandra(connector, Some(keyspaceName), Some(tableName))
+      .tables.headOption
+      .getOrElse(throw new IOException(s"Table not found: $keyspaceName.$tableName"))
+  }
+}
 /** A Cassandra keyspace metadata that can be serialized. */
 case class KeyspaceDef(keyspaceName: String, tables: Set[TableDef]) {
   lazy val tableByName = tables.map(t => (t.tableName, t)).toMap

@@ -2,31 +2,31 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import com.datastax.driver.scala.core.utils.CqlWhereParser
-import com.datastax.driver.scala.core.{TableDef, CassandraConnector}
-
 import scala.collection.JavaConversions._
 import scala.collection.parallel.ForkJoinTaskSupport
 import scala.concurrent.forkjoin.ForkJoinPool
-
 import org.apache.cassandra.thrift
 import org.apache.cassandra.thrift.Cassandra
 import org.apache.spark.Partition
 import org.apache.thrift.TApplicationException
+import com.datastax.driver.scala.core._
 import com.datastax.spark.connector.rdd._
-import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, Token, TokenFactory}
-import CqlWhereParser._
+import com.datastax.driver.scala.core.io.{CqlWhereClause, CqlTokenRange, CqlWhereParser}
+import com.datastax.driver.scala.core.partition.{TokenRangeClusterer, CassandraNode, TokenFactory, Token}
+import com.datastax.driver.scala.core.TableDef
+import com.datastax.driver.scala.core.io.CqlWhereParser._
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 
 /** Creates CassandraPartitions for given Cassandra table */
 class CassandraRDDPartitioner[V, T <: Token[V]](
-    connector: CassandraConnector,
+    connector: SparkCassandraConnector,
     tableDef: TableDef,
     splitSize: Long)(
   implicit
     tokenFactory: TokenFactory[V, T]) {
 
-  type Token = com.datastax.spark.connector.rdd.partitioner.dht.Token[T]
-  type TokenRange = com.datastax.spark.connector.rdd.partitioner.dht.TokenRange[V, T]
+  type Token = partition.Token[T]
+  type TokenRange = partition.TokenRange[V, T]
 
   private val keyspaceName = tableDef.keyspaceName
   private val tableName = tableDef.tableName

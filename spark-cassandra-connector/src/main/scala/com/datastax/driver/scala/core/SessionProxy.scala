@@ -2,7 +2,7 @@ package com.datastax.driver.scala.core
 
 import java.lang.reflect.{InvocationHandler, InvocationTargetException, Method, Proxy}
 
-import PreparedStatementCache
+import com.datastax.driver.core.{SimpleStatement, RegularStatement, Session}
 
 /** Wraps a `Session` and intercepts:
   *  - `close` method to invoke `afterClose` handler

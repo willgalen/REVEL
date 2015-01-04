@@ -1,11 +1,12 @@
 package com.datastax.spark.connector.streaming
 
-import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
-import com.datastax.spark.connector.AllColumns
+import com.datastax.driver.scala.core.io.{RowReaderFactory, CqlWhereClause}
 
 import scala.reflect.ClassTag
 import org.apache.spark.streaming.StreamingContext
-import com.datastax.spark.connector.rdd.{ReadConf, CassandraRDD, CqlWhereClause}
+import com.datastax.driver.scala.core.conf.ReadConf
+import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
+import com.datastax.spark.connector.rdd.CassandraRDD
 import com.datastax.spark.connector.rdd.reader._
 
 /** RDD representing a Cassandra table for Spark Streaming.

@@ -1,6 +1,7 @@
 package com.datastax.spark.connector.writer
 
 import com.datastax.driver.scala.core.TableDef
+import com.datastax.driver.scala.core.io.{RowWriterFactory, RowWriter, AbstractRowWriter}
 import org.apache.spark.sql.catalyst.expressions.Row
 
 /** A [[RowWriter]] that can write [[Row]] objects.*/

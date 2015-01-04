@@ -1,13 +1,16 @@
 package com.datastax.spark.connector.japi;
 
+import com.datastax.driver.scala.core.*;
+import com.datastax.driver.scala.core.conf.WriteConf;
+import com.datastax.driver.scala.core.io.*;
+import scala.Option;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.spark.connector.BatchSize;
-import com.datastax.driver.scala.core.ColumnSelector;
-import com.datastax.driver.scala.core.CassandraConnector;
-import com.datastax.spark.connector.writer.*;
+import com.datastax.driver.scala.core.conf.CassandraSettings.Write;
+import com.datastax.driver.scala.core.BatchSize;
 import org.apache.spark.SparkConf;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import scala.runtime.AbstractFunction1;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -36,10 +39,21 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
     /**
      * Returns the default write configuration instance for the wrapped RDD or DStream.
      *
-     * @return an instance of {@link com.datastax.spark.connector.writer.WriteConf}
+     * @return an instance of {@link com.datastax.driver.scala.core.conf.WriteConf}
      */
     public WriteConf defaultWriteConf() {
-        return WriteConf.fromSparkConf(getConf());
+        String ns = "spark.";
+        SparkConf conf = getConf();
+
+        Option bs = conf.getOption(ns + Write.BatchSizeInBytesProperty()).map(new AbstractFunction1<String, Integer>() {
+          @Override public Integer apply(String v1) { return Integer.valueOf(v1); }});
+        Option cs = conf.getOption(ns + Write.ConsistencyLevelProperty()).map(new AbstractFunction1<String, ConsistencyLevel>() {
+          @Override public ConsistencyLevel apply(String v1) { return ConsistencyLevel.valueOf(v1); }});
+        Option bsr = conf.getOption(ns + Write.BatchSizeInRowsProperty());
+        Option pl = conf.getOption(ns + Write.ParallelismLevelProperty()).map(new AbstractFunction1<String, Integer>() {
+          @Override public Integer apply(String v1) { return Integer.valueOf(v1); }});
+
+        return WriteConf.apply(bs, cs, bsr, pl);
     }
 
     protected abstract void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory,
@@ -47,7 +61,7 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
 
     /**
      * @deprecated this method will be removed in future release, please use {@link #writerBuilder(String, String,
-     * com.datastax.spark.connector.writer.RowWriterFactory)}
+     * com.datastax.driver.scala.core.io.RowWriterFactory)}
      */
     @Deprecated
     public void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory, ColumnSelector columnNames) {
@@ -61,7 +75,7 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
      * default the builder is configured to save all the columns with default connector and Spark Cassandra Connector
      * default parameters.</p>
      *
-     * <p>To obtain an instance of {@link com.datastax.spark.connector.writer.RowWriterFactory} use one of utility
+     * <p>To obtain an instance of {@link com.datastax.driver.scala.core.io.RowWriterFactory} use one of utility
      * methods in {@link com.datastax.spark.connector.japi.CassandraJavaUtil}.</p>
      *
      * @param keyspaceName     the target keyspace name
@@ -70,7 +84,7 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
      *
      * @return an instance of {@link com.datastax.spark.connector.japi.RDDAndDStreamCommonJavaFunctions.WriterBuilder}
      *
-     * @see com.datastax.spark.connector.japi.CassandraJavaUtil#mapToRow(com.datastax.spark.connector.mapper.ColumnMapper)
+     * @see com.datastax.spark.connector.japi.CassandraJavaUtil#mapToRow(com.datastax.driver.scala.mapping.ColumnMapper)
      * @see com.datastax.spark.connector.japi.CassandraJavaUtil#mapToRow(Class, java.util.Map)
      * @see com.datastax.spark.connector.japi.CassandraJavaUtil#mapToRow(Class, org.apache.commons.lang3.tuple.Pair[])
      */

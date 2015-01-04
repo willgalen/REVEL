@@ -2,15 +2,14 @@ package com.datastax.spark.connector.japi;
 
 import akka.japi.JAPI;
 import com.datastax.driver.scala.core.*;
-import com.datastax.spark.connector.*;
-import com.datastax.spark.connector.mapper.*;
-import com.datastax.spark.connector.rdd.reader.ClassBasedRowReaderFactory;
-import com.datastax.spark.connector.rdd.reader.RowReaderFactory;
-import com.datastax.spark.connector.rdd.reader.ValueRowReaderFactory;
-import com.datastax.spark.connector.types.TypeConverter;
-import com.datastax.spark.connector.types.TypeConverter$;
+import com.datastax.driver.scala.mapping.ColumnMapper;
+import com.datastax.driver.scala.core.io.ClassBasedRowReaderFactory;
+import com.datastax.driver.scala.core.io.RowReaderFactory;
+import com.datastax.driver.scala.core.io.ValueRowReaderFactory;
+import com.datastax.driver.scala.types.TypeConverter;
+import com.datastax.driver.scala.types.TypeConverter$;
 import com.datastax.spark.connector.util.JavaApiHelper;
-import com.datastax.spark.connector.writer.RowWriterFactory;
+import com.datastax.driver.scala.core.io.RowWriterFactory;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.SparkContext;
@@ -211,7 +210,7 @@ public class CassandraJavaUtil {
     /**
      * Constructs a row reader factory which maps a single column from a row to the instance of a given class.
      *
-     * <p>It is a short-hand method for calling {@link #mapColumnTo(com.datastax.spark.connector.types.TypeConverter)}
+     * <p>It is a short-hand method for calling {@link #mapColumnTo(com.datastax.driver.scala.types.TypeConverter)}
      * with the type converter resolved by {@link #typeConverter(Class)} method.</p>
      */
     public static <T> RowReaderFactory<T> mapColumnTo(Class<T> targetClass) {
@@ -277,7 +276,7 @@ public class CassandraJavaUtil {
      * Constructs a row reader factory which maps a single column from a row to the objects of a specified type with
      * given type parameters.
      *
-     * <p>It is a short-hand method for calling {@link #mapColumnTo(com.datastax.spark.connector.types.TypeConverter)}
+     * <p>It is a short-hand method for calling {@link #mapColumnTo(com.datastax.driver.scala.types.TypeConverter)}
      * with a type converter resolved by calling {@link #typeConverter(Class, Class, Class[])}.</p>
      */
     public static <T> RowReaderFactory<T> mapColumnTo(Class targetClass, Class typeParam1, Class... typeParams) {
@@ -312,8 +311,8 @@ public class CassandraJavaUtil {
      * <p>Another version of this method {@link #mapRowTo(Class, org.apache.commons.lang3.tuple.Pair[])} can be
      * considered much more handy for inline invocations.</p>
      *
-     * <p>The method uses {@link com.datastax.spark.connector.mapper.JavaBeanColumnMapper} as the column mapper. If
-     * another column mapper has to be used, see {@link #mapRowTo(com.datastax.spark.connector.mapper.ColumnMapper)}
+     * <p>The method uses {@link com.datastax.spark.connector.japi.mapper.JavaBeanColumnMapper} as the column mapper. If
+     * another column mapper has to be used, see {@link #mapRowTo(com.datastax.driver.scala.mapping.ColumnMapper)}
      * method.</p>
      */
     public static <T> RowReaderFactory<T> mapRowTo(Class<T> targetClass, Map<String, String> columnMapping) {
@@ -331,8 +330,8 @@ public class CassandraJavaUtil {
      * mapping of attributes to column names can be changed by providing a custom map of attribute-column mappings for
      * the pairs which do not follow the general convention.</p>
      *
-     * <p>The method uses {@link com.datastax.spark.connector.mapper.JavaBeanColumnMapper} as the column mapper. If
-     * another column mapper has to be used, see {@link #mapRowTo(com.datastax.spark.connector.mapper.ColumnMapper)}
+     * <p>The method uses {@link com.datastax.spark.connector.japi.mapper.JavaBeanColumnMapper} as the column mapper. If
+     * another column mapper has to be used, see {@link #mapRowTo(com.datastax.driver.scala.mapping.ColumnMapper)}
      * method.</p>
      */
     @SafeVarargs
@@ -374,8 +373,8 @@ public class CassandraJavaUtil {
      * <p>Another version of this method {@link #mapToRow(Class, org.apache.commons.lang3.tuple.Pair[])} can be
      * considered much more handy for inline invocations.</p>
      *
-     * <p>The method uses {@link com.datastax.spark.connector.mapper.JavaBeanColumnMapper} as the column mapper. If
-     * another column mapper has to be used, see {@link #mapToRow(com.datastax.spark.connector.mapper.ColumnMapper)}
+     * <p>The method uses {@link com.datastax.spark.connector.japi.mapper.JavaBeanColumnMapper} as the column mapper. If
+     * another column mapper has to be used, see {@link #mapToRow(com.datastax.driver.scala.mapping.ColumnMapper)}
      * method.</p>
      */
     public static <T> RowWriterFactory<T> mapToRow(Class<T> sourceClass, Map<String, String> columnNameMappings) {
@@ -392,8 +391,8 @@ public class CassandraJavaUtil {
      * mapping of attributes to column names can be changed by providing a custom map of attribute-column mappings for
      * the pairs which do not follow the general convention.</p>
      *
-     * <p>The method uses {@link com.datastax.spark.connector.mapper.JavaBeanColumnMapper} as the column mapper. If
-     * another column mapper has to be used, see {@link #mapToRow(com.datastax.spark.connector.mapper.ColumnMapper)}
+     * <p>The method uses {@link com.datastax.spark.connector.japi.mapper.JavaBeanColumnMapper} as the column mapper. If
+     * another column mapper has to be used, see {@link #mapToRow(com.datastax.driver.scala.mapping.ColumnMapper)}
      * method.</p>
      */
     @SafeVarargs

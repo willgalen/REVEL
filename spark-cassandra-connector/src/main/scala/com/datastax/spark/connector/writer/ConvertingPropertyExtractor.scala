@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.types.TypeConverter
+import com.datastax.driver.scala.types.TypeConverter
 
 /** Extracts property values from an object and additionally converts them to desired types */
 class ConvertingPropertyExtractor[T](val cls: Class[T], properties: Seq[(String, TypeConverter[_])])

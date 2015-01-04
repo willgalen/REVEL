@@ -3,18 +3,16 @@ package com.datastax.spark.connector.rdd.partitioner
 import java.io.IOException
 import java.net.InetAddress
 
-import com.datastax.driver.scala.core.CassandraConnector
-
 import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
-
+import com.datastax.driver.scala.core.partition.{CassandraNode, TokenRange, TokenFactory, Token}
+import com.datastax.driver.scala.core.utils.Logging
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 import org.apache.cassandra.thrift.CfSplit
-import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, Token, TokenFactory, TokenRange}
-import com.datastax.spark.connector.util.Logging
 
 /** Delegates token range splitting to Cassandra server. */
 class ServerSideTokenRangeSplitter[V, T <: Token[V]](
-  connector: CassandraConnector,
+  connector: SparkCassandraConnector,
   keyspaceName: String,
   tableName: String,
   tokenFactory: TokenFactory[V, T])

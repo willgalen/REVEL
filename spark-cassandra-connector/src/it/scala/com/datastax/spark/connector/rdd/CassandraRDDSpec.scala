@@ -3,25 +3,16 @@ package com.datastax.spark.connector.rdd
 import java.io.IOException
 import java.util.Date
 
-import com.datastax.driver.scala.core.CassandraConnector
-import com.datastax.spark.connector.mapper.DefaultColumnMapper
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
+import com.datastax.driver.scala.core._
+import com.datastax.driver.scala.mapping.DefaultColumnMapper
+import com.datastax.driver.scala.testkit._
+import com.datastax.spark.connector.testkit._
 import org.scalatest.{FlatSpec, Matchers}
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
-import com.datastax.spark.connector.types.TypeConverter
+import com.datastax.driver.scala.types.TypeConverter
 import com.datastax.spark.connector.embedded._
-
 import scala.reflect.runtime.universe.typeTag
-
-
-case class KeyValue(key: Int, group: Long, value: String)
-case class KeyValueWithConversion(key: String, group: Int, value: Long)
-case class CustomerId(id: String)
-case class KeyGroup(key: Int, group: Int)
-case class Value(value: String)
-case class WriteTimeClass(id: Int, value: String, writeTimeOfValue: Long)
-case class TTLClass(id: Int, value: String, ttlOfValue: Int)
 
 class MutableKeyValue(var key: Int, var group: Long) extends Serializable {
   var value: String = null
@@ -34,7 +25,7 @@ class MutableKeyValueWithConversion(var key: String, var group: Int) extends Ser
 class CassandraRDDSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = CassandraConnector(Set(cassandraHost))
+  val conn = CassandraConnector(cassandraHost)
   val bigTableRowCount = 100000
 
 

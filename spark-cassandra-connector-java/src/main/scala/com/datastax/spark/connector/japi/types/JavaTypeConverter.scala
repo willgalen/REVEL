@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.japi.types
 
 import akka.japi.JavaPartialFunction
-import com.datastax.spark.connector.types.NullableTypeConverter
+import com.datastax.driver.scala.types.NullableTypeConverter
 
 import scala.reflect.runtime.universe._
 

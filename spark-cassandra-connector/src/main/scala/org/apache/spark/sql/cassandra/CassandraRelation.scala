@@ -38,7 +38,7 @@ private[cassandra] case class CassandraRelation
 
 object ColumnDataType {
 
-  private val primitiveTypeMap = Map[connector.types.ColumnType[_], catalyst.types.DataType](
+  private val primitiveTypeMap = Map[com.datastax.driver.scala.types.ColumnType[_], catalyst.types.DataType](
 
     connector.types.TextType       -> catalyst.types.StringType,
     connector.types.AsciiType      -> catalyst.types.StringType,
@@ -66,11 +66,11 @@ object ColumnDataType {
     connector.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
   )
 
-  def catalystDataType(cassandraType: connector.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
+  def catalystDataType(cassandraType: com.datastax.driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
     cassandraType match {
-      case connector.types.SetType(et)      => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
-      case connector.types.ListType(et)     => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
-      case connector.types.MapType(kt, vt)  => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
+      case com.datastax.driver.scala.types.SetType(et)      => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
+      case com.datastax.driver.scala.types.ListType(et)     => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
+      case com.datastax.driver.scala.types.MapType(kt, vt)  => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
       case _                                => primitiveTypeMap(cassandraType)
     }
   }

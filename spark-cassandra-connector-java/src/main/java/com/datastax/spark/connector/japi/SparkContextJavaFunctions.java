@@ -5,8 +5,8 @@ import com.datastax.spark.connector.japi.rdd.CassandraJavaPairRDD;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
 import com.datastax.spark.connector.rdd.CassandraRDD;
 import com.datastax.spark.connector.rdd.CassandraRDD$;
-import com.datastax.spark.connector.rdd.reader.KeyValueRowReaderFactory;
-import com.datastax.spark.connector.rdd.reader.RowReaderFactory;
+import com.datastax.driver.scala.core.io.KeyValueRowReaderFactory;
+import com.datastax.driver.scala.core.io.RowReaderFactory;
 import org.apache.spark.SparkContext;
 import scala.Tuple2;
 

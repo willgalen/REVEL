@@ -7,7 +7,7 @@ import com.datastax.spark.connector._
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.japi.CassandraJavaUtil
 import com.datastax.spark.connector.testkit._
-import com.datastax.spark.connector.types.TypeConverter
+import com.datastax.driver.scala.types.TypeConverter
 import org.apache.commons.lang3.tuple
 import org.scalatest._
 

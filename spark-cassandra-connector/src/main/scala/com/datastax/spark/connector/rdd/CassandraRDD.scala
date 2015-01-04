@@ -2,26 +2,22 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
-import com.datastax.driver.scala.core.utils.CountingIterator
-import com.datastax.driver.scala.core.{Schema, CassandraConnector}
-
 import scala.reflect.ClassTag
 import scala.collection.JavaConversions._
 import scala.language.existentials
-
-import com.datastax.driver.core.{Session, Statement}
-import com.datastax.spark.connector.SomeColumns
-import com.datastax.driver.scala.core._
-import com.datastax.spark.connector.rdd.partitioner.{CassandraRDDPartitioner, CassandraPartition, CqlTokenRange}
-import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory
-import com.datastax.spark.connector.rdd.reader._
-import com.datastax.spark.connector.types.{ColumnType, TypeConverter}
-import com.datastax.spark.connector.util.Logging
-
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, TaskContext}
-import com.datastax.spark.connector._
-
+import com.datastax.driver.scala.core.io._
+import com.datastax.driver.scala.core.partition.TokenFactory
+import com.datastax.driver.scala.core.utils.CountingIterator
+import com.datastax.driver.scala.core.{Schema, CassandraConnector}
+import com.datastax.driver.scala.types.{ColumnType, TypeConverter}
+import com.datastax.driver.core.{Session, Statement}
+import com.datastax.driver.scala.core._
+import com.datastax.spark.connector.rdd.partitioner.{CassandraPartition, CassandraRDDPartitioner}
+import com.datastax.spark.connector.util.Logging
+import com.datastax.driver.scala.core.conf.ReadConf
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 
 /** RDD representing a Cassandra table.
   * This class is the main entry point for analyzing data in Cassandra database with Spark.
@@ -30,7 +26,7 @@ import com.datastax.spark.connector._
   * Configuration properties should be passed in the `SparkConf` configuration of `SparkContext`.
   * `CassandraRDD` needs to open connection to Cassandra, therefore it requires appropriate connection property values
   * to be present in `SparkConf`. For the list of required and available properties, see
-  * [[CassandraConnector CassandraConnector]].
+  * [[com.datastax.spark.connector.cql.SparkCassandraConnector CassandraConnector]].
   *
   * `CassandraRDD` divides the dataset into smaller partitions, processed locally on every cluster node.
   * A data partition consists of one or more contiguous token ranges.
@@ -51,7 +47,7 @@ import com.datastax.spark.connector._
   */
 class CassandraRDD[R] private[connector] (
     @transient sc: SparkContext,
-    val connector: CassandraConnector,
+    val connector: SparkCassandraConnector,
     val keyspaceName: String,
     val tableName: String,
     val columnNames: ColumnSelector = AllColumns,
@@ -82,11 +78,11 @@ class CassandraRDD[R] private[connector] (
 
   private def copy(columnNames: ColumnSelector = columnNames,
                    where: CqlWhereClause = where,
-                   readConf: ReadConf = readConf, connector: CassandraConnector = connector): CassandraRDD[R] =
+                   readConf: ReadConf = readConf, connector: SparkCassandraConnector = connector): CassandraRDD[R] =
     new CassandraRDD(sc, connector, keyspaceName, tableName, columnNames, where, readConf)
 
   /** Returns a copy of this Cassandra RDD with specified connector */
-  def withConnector(connector: CassandraConnector): CassandraRDD[R] =
+  def withConnector(connector: SparkCassandraConnector): CassandraRDD[R] =
     copy(connector = connector)
 
   /** Adds a CQL `WHERE` predicate(s) to the query.
@@ -325,7 +321,7 @@ class CassandraRDD[R] private[connector] (
 
   override def getPartitions: Array[Partition] = {
     verify // let's fail fast
-    val tf = TokenFactory.forCassandraPartitioner(cassandraPartitionerClassName)
+    val tf = TokenFactory(cassandraPartitionerClassName)
     val partitions = new CassandraRDDPartitioner(connector, tableDef, splitSize)(tf).partitions(where)
     logDebug(s"Created total ${partitions.size} partitions for $keyspaceName.$tableName.")
     logTrace("Partitions: \n" + partitions.mkString("\n"))
@@ -409,13 +405,14 @@ class CassandraRDD[R] private[connector] (
 }
 
 object CassandraRDD {
+
   def apply[T](sc: SparkContext, keyspaceName: String, tableName: String)
               (implicit ct: ClassTag[T], rrf: RowReaderFactory[T]): CassandraRDD[T] =
     new CassandraRDD[T](
-      sc, CassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
+      sc, SparkCassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
 
   def apply[K, V](sc: SparkContext, keyspaceName: String, tableName: String)
                  (implicit keyCT: ClassTag[K], valueCT: ClassTag[V], rrf: RowReaderFactory[(K, V)]): CassandraRDD[(K, V)] =
     new CassandraRDD[(K, V)](
-      sc, CassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
+      sc, SparkCassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
 }

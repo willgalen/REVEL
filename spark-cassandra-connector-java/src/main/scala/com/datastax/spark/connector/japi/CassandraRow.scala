@@ -7,9 +7,9 @@ import java.nio.ByteBuffer
 import java.util.{Date, UUID, HashMap => JHashMap, List => JList, Map => JMap, Set => JSet}
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
-import com.datastax.spark.connector.AbstractRow
-import com.datastax.spark.connector.types.TypeConverter
-import com.datastax.spark.connector.types.TypeConverter.StringConverter
+import com.datastax.driver.scala.core.AbstractRow
+import com.datastax.driver.scala.types.TypeConverter
+import com.datastax.driver.scala.types.TypeConverter.StringConverter
 import org.joda.time.DateTime
 
 
@@ -77,7 +77,7 @@ final class CassandraRow(data: Array[AnyRef], columnNames: Array[String]) extend
     * Recommended to use with `bigint` and `counter` CQL types
     * It can also read other column types as `int`, `varint`, `timestamp` and `string`.
     * The string must represent a valid integer number.
-    * The number must be within 64-bit integer range or [[com.datastax.spark.connector.types.TypeConversionException]]
+    * The number must be within 64-bit integer range or [[com.datastax.driver.scala.types.TypeConversionException]]
     * will be thrown. When used with timestamps, returns a number of milliseconds since epoch.*/
   def getLong(index: Int) = _get[JLong](index)
   def getLong(name: String) = _get[JLong](name)

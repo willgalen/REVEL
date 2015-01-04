@@ -1,5 +1,9 @@
 package com.datastax.driver.scala.core.policies
 
+import com.datastax.driver.core.{WriteType, Statement, ConsistencyLevel}
+import com.datastax.driver.core.policies.RetryPolicy
+import com.datastax.driver.core.policies.RetryPolicy.RetryDecision
+
 /** Always retries with the same CL, constant number of times, regardless of circumstances */
 class MultipleRetryPolicy(maxRetryCount: Int) extends RetryPolicy {
 

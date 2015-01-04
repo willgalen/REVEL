@@ -1,13 +1,18 @@
 package com.datastax.spark.connector.writer
 
+import java.io.Serializable
+
+import com.datastax.driver.scala.core.conf.WriteConf
+import com.datastax.driver.scala.core.io.{WriteContext, RowWriterFactory}
 import com.datastax.driver.scala.core.{ColumnSelector, CassandraConnector}
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 import org.apache.spark.SparkContext
 
-abstract class WritableToCassandra[T] {
+abstract class WritableToCassandra[T] extends Serializable {
 
   def sparkContext: SparkContext
 
-  private[connector] lazy val connector = CassandraConnector(sparkContext.getConf)
+  private[datastax] lazy val connector: SparkCassandraConnector = SparkCassandraConnector(sparkContext.getConf)
 
   /**
    * Saves the data from `RDD` to a Cassandra table.

@@ -1,22 +1,26 @@
 package com.datastax.spark.connector
 
-import com.datastax.driver.scala.core.CassandraConnector
-import com.datastax.spark.connector.rdd.{ReadConf, ValidRDDType, CassandraRDD}
-import com.datastax.spark.connector.rdd.reader.RowReaderFactory
+import com.datastax.driver.scala.core.conf.{CassandraSettings, ReadConf}
+import com.datastax.driver.scala.core.io.RowReaderFactory
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 import org.apache.spark.SparkContext
+import com.datastax.driver.scala.core.{CassandraRow, CassandraConnector}
+import com.datastax.driver.scala.mapping.ColumnMapper
+import com.datastax.spark.connector.rdd.{ValidRDDType, CassandraRDD}
 
 import scala.reflect.ClassTag
 
 /** Provides Cassandra-specific methods on `SparkContext` */
-class SparkContextFunctions(@transient val sc: SparkContext) extends Serializable {
+class SparkContextFunctions(@transient val sc: SparkContext)(implicit settings: CassandraSettings) extends Serializable {
 
   /** Returns a view of a Cassandra table as `CassandraRDD`.
     * This method is made available on `SparkContext` by importing `com.datastax.spark.connector._`
     *
     * Depending on the type parameter passed to `cassandraTable`, every row is converted to one of the following:
     *   - an [[CassandraRow]] object (default, if no type given)
-    *   - a tuple containing column values in the same order as columns selected by [[com.datastax.spark.connector.rdd.CassandraRDD#select CassandraRDD#select]]
-    *   - object of a user defined class, populated by appropriate [[com.datastax.spark.connector.mapper.ColumnMapper ColumnMapper]]
+    *   - a tuple containing column values in the same order as columns selected by
+    *   [[com.datastax.spark.connector.rdd.CassandraRDD#select CassandraRDD#select]]
+    *   - object of a user defined class, populated by appropriate [[ColumnMapper ColumnMapper]]
     *
     * Example:
     * {{{
@@ -44,8 +48,8 @@ class SparkContextFunctions(@transient val sc: SparkContext) extends Serializabl
     *   rdd3.first.count // 20
     * }}}*/
   def cassandraTable[T](keyspace: String, table: String)
-                       (implicit connector: CassandraConnector = CassandraConnector(sc.getConf),
+                       (implicit connector: SparkCassandraConnector = SparkCassandraConnector(sc.getConf),
                         ct: ClassTag[T], rrf: RowReaderFactory[T],
                         ev: ValidRDDType[T]) =
-    new CassandraRDD[T](sc, connector, keyspace, table, readConf = ReadConf.fromSparkConf(sc.getConf))
+    new CassandraRDD[T](sc, connector, keyspace, table, readConf = ReadConf(settings))
 }

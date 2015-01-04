@@ -2,14 +2,16 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, BigIntToken, TokenFactory}
+import com.datastax.driver.scala.core.partition
+import com.datastax.driver.scala.core.partition.{TokenFactory, BigIntToken, CassandraNode}
+import com.datastax.spark.connector.rdd.partitioner
 import org.junit.Assert._
 import org.junit.Test
 
 
 class RandomPartitionerTokenRangeSplitterTest {
 
-  type TokenRange = com.datastax.spark.connector.rdd.partitioner.dht.TokenRange[BigInt, BigIntToken]
+  type TokenRange = partition.TokenRange[BigInt, BigIntToken]
 
   private def assertNoHoles(tokenRanges: Seq[TokenRange]) {
     for (Seq(range1, range2) <- tokenRanges.sliding(2))

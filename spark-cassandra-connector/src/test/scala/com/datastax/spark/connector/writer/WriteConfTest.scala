@@ -1,7 +1,10 @@
 package com.datastax.spark.connector.writer
 
 import com.datastax.driver.core.ConsistencyLevel
-import com.datastax.spark.connector.{RowsInBatch, BytesInBatch}
+import com.datastax.driver.scala.core.{BytesInBatch, RowsInBatch}
+import com.datastax.driver.scala.core.conf.{BytesInBatch, RowsInBatch, WriteConf}
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.BytesInBatch
 import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
 
@@ -9,7 +12,7 @@ class WriteConfTest extends FlatSpec with Matchers {
 
   "WriteConf" should "be configured with proper defaults" in {
     val conf = new SparkConf(false)
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.batchSize should be(BytesInBatch(WriteConf.DefaultBatchSizeInBytes))
     writeConf.consistencyLevel should be(WriteConf.DefaultConsistencyLevel)
@@ -19,7 +22,7 @@ class WriteConfTest extends FlatSpec with Matchers {
   it should "allow to set consistency level" in {
     val conf = new SparkConf(false)
       .set("spark.cassandra.output.consistency.level", "THREE")
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.consistencyLevel should be(ConsistencyLevel.THREE)
   }
@@ -27,7 +30,7 @@ class WriteConfTest extends FlatSpec with Matchers {
   it should "allow to set parallelism level" in {
     val conf = new SparkConf(false)
       .set("spark.cassandra.output.concurrent.writes", "17")
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.parallelismLevel should be(17)
   }
@@ -35,7 +38,7 @@ class WriteConfTest extends FlatSpec with Matchers {
   it should "allow to set batch size in bytes" in {
     val conf = new SparkConf(false)
       .set("spark.cassandra.output.batch.size.bytes", "12345")
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.batchSize should be(BytesInBatch(12345))
   }
@@ -44,7 +47,7 @@ class WriteConfTest extends FlatSpec with Matchers {
     val conf = new SparkConf(false)
       .set("spark.cassandra.output.batch.size.bytes", "12345")
       .set("spark.cassandra.output.batch.size.rows", "auto")
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.batchSize should be(BytesInBatch(12345))
   }
@@ -52,7 +55,7 @@ class WriteConfTest extends FlatSpec with Matchers {
   it should "allow to set batch size in rows" in {
     val conf = new SparkConf(false)
       .set("spark.cassandra.output.batch.size.rows", "12345")
-    val writeConf = WriteConf.fromSparkConf(conf)
+    val writeConf = toWriteConf(conf)
 
     writeConf.batchSize should be(RowsInBatch(12345))
   }

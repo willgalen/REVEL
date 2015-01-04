@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.rdd.partitioner
 
-import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenRange}
+import com.datastax.driver.scala.core.partition.{TokenRange, Token}
 
 /** Splits a token range into smaller sub-ranges,
   * each with the desired approximate number of rows. */

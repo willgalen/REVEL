@@ -2,12 +2,12 @@ package com.datastax.spark.connector.streaming
 
 import akka.actor.{ActorRef, Actor}
 import com.datastax.driver.scala.core.CassandraConnector
-import com.datastax.spark.connector.rdd.{ReadConf, ValidRDDType}
+import com.datastax.driver.scala.core.io.RowReaderFactory
+import com.datastax.spark.connector.rdd.ValidRDDType
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.scheduler.StreamingListener
 import org.apache.spark.streaming.receiver.ActorHelper
-import com.datastax.spark.connector.SparkContextFunctions
-import com.datastax.spark.connector.rdd.reader.RowReaderFactory
+import com.datastax.spark.connector._
 
 import scala.reflect.ClassTag
 
@@ -19,13 +19,13 @@ class StreamingContextFunctions (ssc: StreamingContext) extends SparkContextFunc
 
   override def cassandraTable[T](keyspace: String, table: String)(
     implicit
-      connector: CassandraConnector = CassandraConnector(ssc.sparkContext.getConf),
+      connector: CassandraConnector = toConnector(ssc.sparkContext.getConf),
       ct: ClassTag[T],
       rrf: RowReaderFactory[T],
       ev: ValidRDDType[T]): CassandraStreamingRDD[T] = {
 
-    val readConf = ReadConf.fromSparkConf(ssc.sparkContext.getConf)
-    new CassandraStreamingRDD[T](ssc, connector, keyspace, table, readConf = readConf)
+    val rc = toReadConf(ssc.sparkContext.getConf)
+    new CassandraStreamingRDD[T](ssc, connector, keyspace, table, readConf = rc)
   }
 }
 

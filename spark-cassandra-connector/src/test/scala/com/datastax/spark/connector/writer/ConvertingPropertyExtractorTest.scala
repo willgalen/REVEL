@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.types.TypeConverter.{StringConverter, OptionToNullConverter, IntConverter}
+import com.datastax.driver.scala.types.TypeConverter.{StringConverter, OptionToNullConverter, IntConverter}
 
 import org.junit.Assert._
 import org.junit.Test

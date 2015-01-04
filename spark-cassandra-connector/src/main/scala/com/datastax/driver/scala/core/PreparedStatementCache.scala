@@ -1,8 +1,8 @@
 package com.datastax.driver.scala.core
 
-import com.datastax.spark.connector.util.Logging
-
 import scala.collection.concurrent.TrieMap
+import com.datastax.driver.core.{PreparedStatement, RegularStatement, Session, Cluster}
+import com.datastax.driver.scala.core.utils.Logging
 
 /** Caches prepared statements so they are not prepared
   * multiple times by different threads. */

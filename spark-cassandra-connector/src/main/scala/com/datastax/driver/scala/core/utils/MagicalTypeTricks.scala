@@ -23,8 +23,8 @@ object MagicalTypeTricks {
   /**
    * Example of how disjunction can be used:
    * {{{
-   * scala> import com.datastax.spark.connector.util.MagicalTypeTricks._
-   * import com.datastax.spark.connector.util.MagicalTypeTricks._
+   * scala> import com.datastax.driver.scala.core.utils.MagicalTypeTricks._
+   * import com.datastax.driver.scala.core.utils.MagicalTypeTricks._
    *
    * scala> def function[T](t: T)(implicit ev: (λ[T] <:< (Int ∪ String))) = { println(s"t = $t") }
    * function: [T](t: T)(implicit ev: <:<[(T => Nothing) => Nothing,Int => Nothing with String => Nothing => Nothing])Unit

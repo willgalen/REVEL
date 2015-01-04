@@ -1,9 +1,9 @@
 package org.apache.spark.sql.cassandra
 
 import com.datastax.driver.core.{Row, ProtocolVersion}
-import com.datastax.spark.connector.AbstractRow
-import com.datastax.spark.connector.rdd.reader.{ThisRowReaderAsFactory, RowReader}
-import com.datastax.spark.connector.types.TypeConverter
+import com.datastax.driver.scala.core.AbstractRow
+import com.datastax.driver.scala.core.io.{ThisRowReaderAsFactory, RowReader}
+import com.datastax.driver.scala.types.TypeConverter
 import org.apache.spark.sql.catalyst.expressions.{Row => SparkRow}
 
 final class CassandraSQLRow(data: IndexedSeq[AnyRef], columnNames: IndexedSeq[String])

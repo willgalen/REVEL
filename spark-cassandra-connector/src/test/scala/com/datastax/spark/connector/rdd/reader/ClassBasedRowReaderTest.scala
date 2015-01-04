@@ -1,6 +1,7 @@
 package com.datastax.spark.connector.rdd.reader
 
 import com.datastax.driver.scala.core.TableDef
+import com.datastax.driver.scala.core.io.ClassBasedRowReader
 import org.apache.commons.lang3.SerializationUtils
 import org.junit.Test
 

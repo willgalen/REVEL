@@ -2,77 +2,95 @@ package com.datastax.driver.scala.core.conf
 
 import java.net.InetAddress
 
-import scala.collection.immutable
-import scala.util.control.NonFatal
 import com.datastax.driver.scala.core.utils.Logging
-import com.datastax.driver.scala.core.{CassandraConnectionFactory, DefaultConnectionFactory}
+import com.datastax.driver.scala.core.{SimpleConnectionFactory, CassandraConnectionFactory}
 
 /** Stores configuration of a connection to Cassandra.
-  * Provides information about cluster nodes, ports and optional credentials for authentication. */
-case class CassandraConnectorConf(
-  hosts: Set[InetAddress],
-  nativePort: Int = CassandraConnectorConf.DefaultNativePort,
-  rpcPort: Int = CassandraConnectorConf.DefaultRpcPort,
-  authConf: AuthConf = NoAuthConf,
-  connectionFactory: CassandraConnectionFactory = DefaultConnectionFactory)
+ * Provides information about cluster nodes, ports and optional credentials for authentication.
+ *
+ * @param hosts the contact point(s) to connect to the Cassandra cluster
+ *
+ * @param nativePort the cassandra native port, defaults to 9042
+ *
+ * @param rpcPort the cassandra thrift port, defaults to 9160
+ *
+ * @param authConf the [[AuthConf]] implementation authentication configuration instance
+ *
+ * @param connectionFactory the name of a Scala module or class implementing [[CassandraConnectionFactory]]
+ *                          that allows to plugin custom code for connecting to Cassandra
+ */
+case class CassandraConnectorConf(hosts: Set[InetAddress],
+                                  nativePort: Int,
+                                  rpcPort: Int,
+                                  authConf: AuthConf,
+                                  connectionFactory: CassandraConnectionFactory,
+                                  clusterConf: CassandraClusterConf)
 
-/** A factory for `CassandraConnectorConf` objects.
-  * Allows for manually setting connection properties or reading them from `SparkConf` object.
-  * By embedding connection information in `SparkConf`, `SparkContext` can offer Cassandra specific methods
-  * which require establishing connections to a Cassandra cluster.*/
+/** Companion object for `CassandraConnectorConf` instances. Allows for manually setting
+  * connection values or reading them from system properties, which are needed for
+  * establishing connections to a Cassandra cluster. */
 object CassandraConnectorConf extends Logging {
-  import CassandraPropertyNames._
 
-  def apply(host: InetAddress, nativePort: Int, rpcPort: Int, authConf: AuthConf = NoAuthConf): CassandraConnectorConf =
-    CassandraConnectorConf(Set(host), nativePort, rpcPort, authConf)
+  def apply(settings: CassandraSettings): CassandraConnectorConf =
+    CassandraConnectorConf(
+      hosts = settings.CassandraHosts,
+      nativePort = settings.NativePort,
+      rpcPort = settings.RpcPort,
+      authConf = AuthConf(settings),
+      connectionFactory = CassandraConnectionFactory(settings),
+      clusterConf = CassandraClusterConf(settings))
 
-  def apply(username: Option[String], password: Option[String], connectionFactoryFqcn: Option[String]): CassandraConnectorConf = {
-    import settings._
-
-    val hosts = resolveHosts(CassandraConnectionHosts)
-    val rpcPort = CassandraConnectionRpcPort
-    val nativePort = CassandraConnectionNativePort
-    val authConf = AuthConf(username, password)
-    val connectionFactory = CassandraConnectionFactory(connectionFactoryFqcn)
-    CassandraConnectorConf(hosts, nativePort, rpcPort, authConf, connectionFactory)
+  /** Returns an instance of CassandraConnectorConf with all default settings and local host. */
+  def apply(host: InetAddress = InetAddress.getLocalHost,
+            auth: AuthConf = NoAuthConf): CassandraConnectorConf = {
+    import Connection._
+    CassandraConnectorConf(Set(host), DefaultNativePort, DefaultRpcPort, auth,
+      SimpleConnectionFactory, CassandraClusterConf())
   }
+}
 
-  def resolveHosts(hostNames: Set[String]): Set[InetAddress] =
-    for {
-      hostName <- hostNames
-      hostAddress <- resolve(hostName)
-    } yield hostAddress
+/** Used by the [[SimpleConnectionFactory]] to configure the cluster.
+  * Attempts to acquire optional connection tuning settings from java system
+  * properties. If unavailable, falls back to default settings.
+  *
+  * @param minReconnectDelay used in the reconnection policy for the initial delay determining how often to
+  *                          try to reconnect to a dead node (default 1 s)
+  *
+  * @param maxReconnectDelay used in the reconnection policy as the final delay determining how often to
+  *                          try to reconnect to a dead node (default 60 s)
+  *
+  * @param localDc used by `LocalNodeFirstLoadBalancingPolicy`: if set, attempts to use that first
+  *
+  * @param queryRetries the number of times to reattempt a failed query
+  *
+  * @param timeout the connection timeout in millis
+  *
+  * @param readTimeout the read timeout in millis
+  */
+case class CassandraClusterConf(minReconnectDelay: Int,
+                                maxReconnectDelay: Int,
+                                localDc: Option[String],
+                                queryRetries: Int,
+                                timeout: Int,
+                                readTimeout: Int)
 
-  private def resolve(hostName: String): Option[InetAddress] =
-    try Some(InetAddress.getByName(hostName)) catch {
-      case NonFatal(e) =>
-        logError(s"Unknown host '$hostName'", e)
-        None
-    }
+object CassandraClusterConf {
+  def apply(settings: CassandraSettings): CassandraClusterConf =
+    CassandraClusterConf(
+      minReconnectDelay = settings.ClusterReconnectDelayMin,
+      maxReconnectDelay = settings.ClusterReconnectDelayMax,
+      localDc = settings.ClusterLocalDc,
+      queryRetries = settings.ClusterQueryRetries,
+      timeout = settings.ClusterTimeout,
+      readTimeout = settings.ClusterReadTimeout)
 
-
-  def hosts(hostString: Option[String]): immutable.Set[String] =
-    withFallback[String](hostString, CassandraConnectionHostProperty,
-      InetAddress.getLocalHost.getHostAddress).split(",").toSet[String]
-
-  def rpcPort(port: Option[Int]): Int =
-    withFallback[Int](port, CassandraConnectionRpcPortProperty, 9160)
-
-  def nativePort(port: Option[Int]): Int =
-    withFallback[Int](port, CassandraConnectionNativePortProperty, 9042)
-
-  def userName(user: Option[String]): Option[String] =
-    user orElse sys.props.get(CassandraUserNameProperty)
-
-  def password(pass: Option[String]): Option[String] =
-    pass orElse sys.props.get(CassandraPasswordProperty)
-
-  def authConfFactoryFqcn(fqcn: Option[String]): Option[String] = sys.props.get(AuthConfFactoryProperty)
-
-  def ConnectionFactoryFQCN: Option[String] = sys.props.get(ConnectionFactoryProperty)
-
-  /** Attempts to acquire from java system properties, falls back to the provided default. */
-  def withFallback[T](option: Option[T] = None, key: String, default: T): T =
-    option getOrElse sys.props.get(key).map(_.asInstanceOf[T]).getOrElse(default)
-
+  /** Returns a `CassandraClusterConf` instance with only default settings applied. */
+ def apply(): CassandraClusterConf =
+    CassandraClusterConf(
+      minReconnectDelay = Cluster.DefaultReconnectDelayMin,
+      maxReconnectDelay = Cluster.DefaultReconnectDelayMax,
+      localDc = None,
+      queryRetries = Cluster.DefaultQueryRetryCountMillis,
+      timeout = Cluster.DefaultTimeoutMillis,
+      readTimeout = Cluster.DefaultReadTimeoutMillis)
 }

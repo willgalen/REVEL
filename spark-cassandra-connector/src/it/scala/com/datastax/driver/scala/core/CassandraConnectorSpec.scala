@@ -1,18 +1,13 @@
 package com.datastax.driver.scala.core
 
-import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.driver.scala.testkit.EmbeddedCassandraFixture
 import com.datastax.spark.connector.embedded._
-import com.datastax.spark.connector.testkit._
-import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}
 
-case class KeyValue(key: Int, group: Long, value: String)
-case class KeyValueWithConversion(key: String, group: Int, value: Long)
-
-class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra {
+class CassandraConnectorSpec extends FlatSpec with Matchers with EmbeddedCassandraFixture {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = CassandraConnector(Set(cassandraHost))
+  val conn = CassandraConnector(cassandraHost)
 
   val createKeyspaceCql = "CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = { 'class': 'SimpleStrategy', 'replication_factor': 1 }"
 
@@ -23,11 +18,6 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
     }
   }
 
-  it should "connect to Cassandra with thrift" in {
-    conn.withCassandraClientDo { client =>
-      assert(client.describe_cluster_name() === "Test Cluster")
-    }
-  }
 
   it should "give access to cluster metadata" in {
     conn.withClusterDo { cluster =>
@@ -82,7 +72,7 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
   }
 
   it should "share internal Cluster object between multiple logical sessions created by different connectors to the same cluster" in {
-    val conn2 = CassandraConnector(Set(EmbeddedCassandra.cassandraHost))
+    val conn2 = CassandraConnector(EmbeddedCassandra.cassandraHost)
     val session1 = conn.openSession()
     val threadCount1 = Thread.activeCount()
     val session2 = conn2.openSession()
@@ -96,27 +86,6 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
     session2.isClosed shouldEqual true
   }
 
-  it should "be configurable from SparkConf" in {
-    val host = EmbeddedCassandra.cassandraHost.getHostAddress
-    val conf = new SparkConf(loadDefaults = true)
-      .set(CassandraConnectorConf.CassandraConnectionHostProperty, host)
-
-    // would throw exception if connection unsuccessful
-    val conn2 = CassandraConnector(conf)
-    conn2.withSessionDo { session => }
-  }
-
-  it should "accept multiple hostnames in spark.cassandra.connection.host property" in {
-    val goodHost = EmbeddedCassandra.cassandraHost.getHostAddress
-    val invalidHost = "192.168.254.254"
-    // let's connect to two addresses, of which the first one is deliberately invalid
-    val conf = new SparkConf(loadDefaults = true)
-      .set(CassandraConnectorConf.CassandraConnectionHostProperty, invalidHost + "," + goodHost)
-
-    // would throw exception if connection unsuccessful
-    val conn2 = CassandraConnector(conf)
-    conn2.withSessionDo { session => }
-  }
 }
 
 

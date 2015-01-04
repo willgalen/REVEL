@@ -1,9 +1,12 @@
 package com.datastax.spark.connector
 
-import com.datastax.driver.scala.core.{AllColumns, ColumnSelector, CassandraConnector}
-import com.datastax.spark.connector.writer._
+import com.datastax.driver.scala.core.conf.WriteConf
+import com.datastax.driver.scala.core.io.RowWriterFactory
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
+import com.datastax.driver.scala.core.{CassandraConnector, AllColumns, ColumnSelector}
+import com.datastax.spark.connector.writer._
 
 /** Provides Cassandra-specific methods on `RDD` */
 class RDDFunctions[T](rdd: RDD[T]) extends WritableToCassandra[T] with Serializable {
@@ -17,10 +20,10 @@ class RDDFunctions[T](rdd: RDD[T]) extends WritableToCassandra[T] with Serializa
   def saveToCassandra(keyspaceName: String,
                       tableName: String,
                       columns: ColumnSelector = AllColumns,
-                      writeConf: WriteConf = WriteConf.fromSparkConf(sparkContext.getConf))
-                     (implicit connector: CassandraConnector = CassandraConnector(sparkContext.getConf),
+                      writeConf: WriteConf = WriteConf(sparkContext.getConf))
+                     (implicit connector: CassandraConnector = SparkCassandraConnector(sparkContext.getConf),
                       rwf: RowWriterFactory[T]): Unit = {
-    val writer = TableWriter(connector, keyspaceName, tableName, columns, writeConf)
+    val writer = CassandraTableWriter(connector, keyspaceName, tableName, columns, writeConf)
     rdd.sparkContext.runJob(rdd, writer.write _)
   }
 }

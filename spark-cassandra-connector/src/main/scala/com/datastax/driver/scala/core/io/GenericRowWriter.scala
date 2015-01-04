@@ -1,0 +1,28 @@
+package com.datastax.driver.scala.core.io
+
+import com.datastax.driver.scala.core.{CassandraRow, TableDef}
+
+/** A [[RowWriter]] that can write [[CassandraRow]] objects.*/
+class GenericRowWriter(table: TableDef, selectedColumns: Seq[String])
+  extends AbstractRowWriter[CassandraRow](table: TableDef, selectedColumns: Seq[String]) {
+
+  override protected def getColumnValue(data: CassandraRow, columnName: String): AnyRef = {
+    val index = data.indexOf(columnName)
+    if (index >= 0) {
+      val converter = table.columnByName(columnName).columnType.converterToCassandra
+      val value = data.getRaw(index)
+      converter.convert(value)
+    }
+    else
+      null
+  }
+}
+
+object GenericRowWriter {
+
+  object Factory extends RowWriterFactory[CassandraRow] {
+    override def rowWriter(table: TableDef, columnNames: Seq[String]) =
+      new GenericRowWriter(table, columnNames)
+  }
+
+}

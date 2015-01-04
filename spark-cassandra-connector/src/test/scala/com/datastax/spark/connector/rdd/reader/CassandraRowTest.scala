@@ -3,7 +3,7 @@ package com.datastax.spark.connector.rdd.reader
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
 import java.text.SimpleDateFormat
 
-import com.datastax.spark.connector.{CassandraRow, ColumnNotFoundException}
+import com.datastax.driver.scala.core.{CassandraRow, ColumnNotFoundException}
 import org.junit.Assert._
 import org.scalatest.{FunSuite, ShouldMatchers}
 

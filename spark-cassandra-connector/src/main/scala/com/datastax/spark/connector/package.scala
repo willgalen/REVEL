@@ -1,11 +1,12 @@
 package com.datastax.spark
 
-import com.datastax.driver.scala.core.{WriteTime, TTL, ColumnName, NamedColumnRef}
-import org.apache.spark.SparkContext
-import org.apache.spark.rdd.RDD
-
 import scala.language.implicitConversions
+
 import scala.reflect.ClassTag
+import org.apache.spark.{SparkConf, SparkContext}
+import org.apache.spark.rdd.RDD
+import com.datastax.driver.scala.core.conf.{CassandraConnectorConf, CassandraSettings}
+import com.datastax.spark.connector.cql.SparkCassandraConnector
 
 /**
  * The root package of Cassandra connector for Apache Spark.
@@ -57,10 +58,13 @@ package object connector {
   implicit def toRDDFunctions[T : ClassTag](rdd: RDD[T]): RDDFunctions[T] =
     new RDDFunctions[T](rdd)
 
-  implicit class ColumnNameFunctions(val columnName: String) extends AnyVal {
-    def writeTime: WriteTime = WriteTime(columnName)
-    def ttl: TTL = TTL(columnName)
-  }
+  implicit def toSettings(conf: SparkConf): CassandraSettings =
+    CassandraSettings("spark.", conf.getAll.toMap)
 
-  implicit def toNamedColumnRef(columnName: String): NamedColumnRef = ColumnName(columnName)
+  implicit def toConnectorConf(conf: SparkConf): CassandraConnectorConf =
+    CassandraConnectorConf(toSettings(conf))
+
+  implicit def toCassandraConnector(conf: SparkConf): SparkCassandraConnector =
+    SparkCassandraConnector(conf)
+
 }
