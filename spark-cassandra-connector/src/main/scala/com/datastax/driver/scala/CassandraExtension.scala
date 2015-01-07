@@ -16,17 +16,17 @@ import com.datastax.driver.scala.core.utils.Logging
 /**
  * An Akka Extension for Cassandra.
  */
-object Cassandra extends ExtensionId[Cassandra] with ExtensionIdProvider {
+object CassandraExtension extends ExtensionId[CassandraExtension] with ExtensionIdProvider {
 
-  override def get(system: ActorSystem): Cassandra = super.get(system)
+  override def get(system: ActorSystem): CassandraExtension = super.get(system)
 
-  override def lookup = Cassandra
+  override def lookup = CassandraExtension
 
-  override def createExtension(system: ExtendedActorSystem): Cassandra = new Cassandra(system)
+  override def createExtension(system: ExtendedActorSystem): CassandraExtension = new CassandraExtension(system)
 
 }
 
-class Cassandra private(val system: ExtendedActorSystem) extends Extension with Logging {
+class CassandraExtension private(val system: ExtendedActorSystem) extends Extension with Logging {
 
   final val settings = CassandraSettings()
 

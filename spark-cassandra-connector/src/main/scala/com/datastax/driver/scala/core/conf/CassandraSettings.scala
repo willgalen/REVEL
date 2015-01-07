@@ -44,7 +44,7 @@ import com.datastax.driver.scala.core.utils.Logging
  * @param alternate optional settings from an outside source
  *
  */
-class CassandraSettings private(val alternate: Source, prefix: Option[String]) extends FallbackSettings {
+final class CassandraSettings private(val alternate: Source, prefix: Option[String]) extends FallbackSettings {
 
   protected def get(key: String): Option[String] = {
     val k = prefix.map(_ + key) getOrElse key
@@ -66,7 +66,7 @@ class CassandraSettings private(val alternate: Source, prefix: Option[String]) e
   val ClusterReconnectDelayMax = get(Cluster.ReconnectDelayMaxProperty).map(_.toInt) getOrElse Cluster.DefaultReconnectDelayMax
   val ClusterLocalDc: Option[String] = get(Cluster.LocalDcProperty)
   val ClusterQueryRetries = get(Cluster.QueryRetryCountMillisProperty).map(_.toInt) getOrElse Cluster.DefaultQueryRetryCountMillis
-  val ClusterTimeout = get(Cluster.TimeoutMillisProperty).map(_.toInt) getOrElse Cluster.DefaultTimeoutMillis
+  val ClusterTimeout: Int = get(Cluster.TimeoutMillisProperty).map(_.toInt) getOrElse Cluster.DefaultTimeoutMillis
   val ClusterReadTimeout = get(Cluster.ReadTimeoutMillisProperty).map(_.toInt) getOrElse Cluster.DefaultReadTimeoutMillis
 
   val WriteBatchSizeBytes = get(Write.BatchSizeInBytesProperty).map(_.toInt) getOrElse Write.DefaultBatchSizeInBytes
@@ -77,7 +77,7 @@ class CassandraSettings private(val alternate: Source, prefix: Option[String]) e
 
   val ReadSplitSize = get(Read.SplitSizeProperty).map(_.toInt) getOrElse Read.DefaultSplitSize
   val ReadFetchSize = get(Read.FetchSizeProperty).map(_.toInt) getOrElse Read.DefaultFetchSize
-  val ReadConsistencyLevel = ConsistencyLevel.valueOf(
+  val ReadConsistencyLevel: ConsistencyLevel = ConsistencyLevel.valueOf(
     get(Read.ConsistencyLevelProperty) getOrElse Read.DefaultConsistencyLevel.name())
 
 }

@@ -57,7 +57,7 @@ class CassandraSettingsSpec extends AbstractSpec {
 
       val source = Map(
         "cassandra.connection.host" -> s"$host",
-       "cassandra.connection.native.port" -> "9043")
+        "cassandra.connection.native.port" -> "9043")
 
       val settings = CassandraSettings(Source(source), None)
       import settings._

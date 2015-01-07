@@ -1,19 +1,17 @@
 package com.datastax.driver.scala.samples
 
 import akka.actor.ActorSystem
-import com.datastax.driver.scala.Cassandra
+import com.datastax.driver.scala.CassandraExtension
 import com.datastax.driver.scala.core._
-
-case class KeyValue(k: Int, v: String) extends Serializable
-
-class AkkaCassandraSample {
+ 
+class CassandraExtensionDemo {
 
   /**
    * This can be your existing Akka ActorSystem, Spark's.. etc.
    */
   val system = ActorSystem("Cassandra")
 
-  val connector = Cassandra(system)
+  val connector = CassandraExtension(system)
 
   connector execute Seq(
     "CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1 }",
@@ -43,5 +41,5 @@ class AkkaCassandraSample {
   // Show the two new rows were stored in test.kv table:
   cassandra.table("test", "key_value").stream foreach println
 
-
+  case class KeyValue(k: Int, v: String) extends Serializable
 }

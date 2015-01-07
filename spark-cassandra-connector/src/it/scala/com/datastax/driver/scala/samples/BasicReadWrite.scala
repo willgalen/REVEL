@@ -7,7 +7,7 @@ class BasicReadWrite extends App with Logging {
   /** Import this to write to cassandra from a collection of data or read a cassandra table. */
   import com.datastax.driver.scala.core._
 
-  implicit val settings = CassandraSettings()
+  val settings = CassandraSettings()
 
   Connector(settings).withSessionDo { session =>
     session.execute("CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1 }")
@@ -38,5 +38,12 @@ class BasicReadWrite extends App with Logging {
 
   // Show the two new rows were stored in test.kv table:
   cassandra.table("test", "key_value").stream foreach println
+
+  // write in the stream
+  // Source(iterable).to(Cassandra("test", "key_value")).run()
+
+  // read in the stream
+  // CassandraStream("test", "key_value")
+  //   .foreach(func)
 
 }

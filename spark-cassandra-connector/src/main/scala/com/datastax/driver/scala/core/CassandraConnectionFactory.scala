@@ -20,7 +20,7 @@ trait CassandraConnectionFactory extends Serializable {
 object SimpleConnectionFactory extends CassandraConnectionFactory {
 
   /** Returns the Cluster.Builder object used to setup Cluster instance. */
-  def clusterBuilder(conf: CassandraConnectorConf): Cluster.Builder = {
+  private def clusterBuilder(conf: CassandraConnectorConf): Cluster.Builder = {
     val options = new SocketOptions()
       .setConnectTimeoutMillis(conf.clusterConf.timeout)
       .setReadTimeoutMillis(conf.clusterConf.readTimeout)

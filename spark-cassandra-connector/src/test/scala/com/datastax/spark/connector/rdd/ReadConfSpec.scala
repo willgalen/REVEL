@@ -16,7 +16,7 @@ class ReadConfSpec extends FlatSpec with Matchers {
     readConf.fetchSize should be(DefaultFetchSize)
     readConf.consistencyLevel should be(DefaultConsistencyLevel)
   }
-
+   
   it should "allow to set split size" in {
     val conf = new SparkConf(false).set("spark.cassandra.input.split.size", "10000")
     conf.readConf.splitSize should be(10000)
