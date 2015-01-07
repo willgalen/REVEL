@@ -2,8 +2,10 @@ package com.datastax.driver.scala.core.io
 
 import java.io.IOException
 
+import com.google.common.util.concurrent.ListenableFuture
+
 import scala.collection._
-import com.datastax.driver.core.{BatchStatement, PreparedStatement, Session}
+import com.datastax.driver.core.{ResultSet, BatchStatement, PreparedStatement, Session}
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.conf.WriteConf
 import com.datastax.driver.scala.core.utils.{CountingIterator, Logging}
@@ -12,8 +14,8 @@ import com.datastax.driver.scala.core.utils.{CountingIterator, Logging}
   * Individual column values are extracted from RDD objects using given [[RowWriter]]
   * Then, data are inserted into Cassandra with batches of CQL INSERT statements.
   * Each RDD partition is processed by a single thread. */
-class TableWriter[T] private (
-    connector: CassandraConnector,
+class TableWriter[T] private[datastax] (
+    connector: Connector,
     tableDef: TableDef,
     rowWriter: RowWriter[T],
     writeConf: WriteConf) extends Serializable with Logging {
@@ -38,10 +40,9 @@ class TableWriter[T] private (
     case TimestampOption.auto => None
   }
 
-  private def quote(name: String): String =
-    "\"" + name + "\""
+  private def quote(name: String): String = "\"" + name + "\""
 
-  private[connector] lazy val queryTemplateUsingInsert: String = {
+  private[datastax] lazy val queryTemplateUsingInsert: String = {
     val quotedColumnNames: Seq[String] = columnNames.map(quote)
     val columnSpec = quotedColumnNames.mkString(", ")
     val valueSpec = quotedColumnNames.map(":" + _).mkString(", ")
@@ -88,11 +89,7 @@ class TableWriter[T] private (
   }
 
   private def prepareStatement(session: Session): PreparedStatement = {
-    try {
-      session.prepare(queryTemplate)
-    }
-    catch {
-      case t: Throwable =>
+    try session.prepare(queryTemplate) catch { case t: Throwable =>
         throw new IOException(s"Failed to prepare statement $queryTemplate: " + t.getMessage, t)
     }
   }
@@ -143,9 +140,8 @@ class TableWriter[T] private (
     }
   }
 
-  private def writeUnbatched(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor) {
-    for (row <- data)
-      queryExecutor.executeAsync(rowWriter.bind(row, stmt, protocolVersion))
+  private def writeUnbatched(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor): Unit = {
+    for (row <- data) queryExecutor.executeAsync(rowWriter.bind(row, stmt, protocolVersion))
   }
 
   /** Main entry point */
@@ -180,22 +176,27 @@ object TableWriter {
 
   private[io] val MeasuredInsertsCount = 128
 
-  def apply[T : RowWriterFactory](
-      connector: CassandraConnector,
-      keyspaceName: String,
-      tableName: String,
-      columnNames: ColumnSelector,
-      writeConf: WriteConf): TableWriter[T] = {
+  def apply[T : RowWriterFactory](connector: Connector, keyspaceName: String, tableName: String,
+      columnNames: ColumnSelector, writeConf: WriteConf = WriteConf.Default): TableWriter[T] = {
+
+    val (tableDef, rowWriter) = unapply(connector, keyspaceName, tableName, columnNames, writeConf)
+    new TableWriter[T](connector, tableDef, rowWriter, writeConf)
+  }
+
+  def unapply[T : RowWriterFactory](
+                                   connector: Connector,
+                                   keyspaceName: String,
+                                   tableName: String,
+                                   columnNames: ColumnSelector,
+                                   writeConf: WriteConf): (TableDef,RowWriter[T]) = {
 
     val tableDef = TableDef(connector, keyspaceName, tableName)
     val options = writeConf.optionsAsColumns(tableDef.keyspaceName, tableDef.tableName)
-    val selectedColumns  = tableDef.selectedColumns(columnNames)
+    val selectedColumns = tableDef.selectedColumns(columnNames)
     val updatedDef = tableDef.appendRegularColumns(options)
     val rowWriter = implicitly[RowWriterFactory[T]]
       .rowWriter(updatedDef, selectedColumns ++ writeConf.optionPlaceholders)
     (tableDef, rowWriter)
-
-    new TableWriter[T](connector, tableDef, rowWriter, writeConf)
   }
 
 }

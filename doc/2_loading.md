@@ -32,7 +32,7 @@ Now you can read that table as `RDD`:
 
 ```scala
 val rdd = sc.cassandraTable("test", "words")
-// rdd: com.datastax.spark.connector.rdd.CassandraRDD[com.datastax.spark.connector.rdd.reader.CassandraRow] = CassandraRDD[0] at RDD at CassandraRDD.scala:41
+// rdd: com.datastax.spark.connector.rdd.CassandraRDD[com.datastax.driver.scala.core.CassandraRow] = CassandraRDD[0] at RDD at CassandraRDD.scala:41
 
 rdd.toArray.foreach(println)
 // CassandraRow{word: bar, count: 20}
@@ -50,7 +50,7 @@ Store the first item of the rdd in the firstRow value.
 
 ```scala
 val firstRow = rdd.first
-// firstRow: com.datastax.spark.connector.rdd.reader.CassandraRow = CassandraRow{word: bar, count: 20}
+// firstRow: com.datastax.driver.scala.core.CassandraRow = CassandraRow{word: bar, count: 20}
 ```
 
 Get the number of columns and column names:
@@ -105,7 +105,7 @@ Then in your application, retrieve the first row:
 
 ```scala
 val row = sc.cassandraTable("test", "users").first
-// row: com.datastax.spark.connector.rdd.reader.CassandraRow = CassandraRow{username: someone, emails: [someone@email.com, s@email.com]}
+// row: com.datastax.driver.scala.core.CassandraRow = CassandraRow{username: someone, emails: [someone@email.com, s@email.com]}
 ```
 
 Query the collection set in Cassandra from Spark:

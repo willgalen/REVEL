@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.demo
 
-import com.datastax.driver.scala.core.CassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.spark.{SparkContext, SparkConf}
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 

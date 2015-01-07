@@ -7,12 +7,12 @@ import scala.collection.JavaConversions._
 import scala.util.{Failure, Success, Try}
 import com.datastax.driver.scala.core.partition.{CassandraNode, TokenRange, TokenFactory, Token}
 import com.datastax.driver.scala.core.utils.Logging
-import com.datastax.spark.connector.cql.SparkCassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 import org.apache.cassandra.thrift.CfSplit
 
 /** Delegates token range splitting to Cassandra server. */
 class ServerSideTokenRangeSplitter[V, T <: Token[V]](
-  connector: SparkCassandraConnector,
+  connector: CassandraConnector,
   keyspaceName: String,
   tableName: String,
   tokenFactory: TokenFactory[V, T])

@@ -2,15 +2,15 @@ package com.datastax.driver.scala.core.utils
 
 import java.util.{Map => JavaMap}
 
-import com.datastax.driver.scala.core.CassandraRow
-import com.datastax.driver.scala.core.io.{RowReaderFactory, RowWriterFactory}
-import com.datastax.driver.scala.mapping.ColumnMapper
-import com.datastax.spark.connector.mapper.JavaBeanColumnMapper
+import scala.reflect.runtime.universe._
 
 import scala.collection.JavaConversions._
 import scala.reflect._
 import scala.reflect.api.{Mirror, TypeCreator, _}
-import scala.reflect.runtime.universe._
+import com.datastax.driver.scala.core.CassandraRow
+import com.datastax.driver.scala.core.io.{RowReaderFactory, RowWriterFactory}
+import com.datastax.driver.scala.mapping.ColumnMapper
+import com.datastax.spark.connector.mapper.JavaBeanColumnMapper
 
 /** A helper class to make it possible to access components written in Scala from Java code. */
 object JavaApiHelper {

@@ -8,8 +8,7 @@ import com.datastax.driver.scala.core.utils.Logging
   * multiple times by different threads. */
 object PreparedStatementCache extends Logging {
 
-  private val clusterCache = 
-    TrieMap[Cluster, TrieMap[String, PreparedStatement]]()
+  private val clusterCache = TrieMap[Cluster, TrieMap[String, PreparedStatement]]()
 
   private def get(cluster: Cluster, query: String): Option[PreparedStatement] =
     for (statementCache <- clusterCache.get(cluster);

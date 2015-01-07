@@ -1,5 +1,6 @@
 package com.datastax.spark.connector.japi;
 
+import com.datastax.spark.connector.SparkConfFunctions;
 import com.datastax.spark.connector.SparkContextFunctions;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaPairRDD;
 import com.datastax.spark.connector.japi.rdd.CassandraJavaRDD;
@@ -10,7 +11,7 @@ import com.datastax.driver.scala.core.io.RowReaderFactory;
 import org.apache.spark.SparkContext;
 import scala.Tuple2;
 
-import static com.datastax.spark.connector.util.JavaApiHelper.getClassTag;
+import static com.datastax.driver.scala.core.utils.JavaApiHelper.getClassTag;
 
 /**
  * Java API wrapper over {@link org.apache.spark.SparkContext} to provide Spark Cassandra Connector functionality.
@@ -22,10 +23,12 @@ import static com.datastax.spark.connector.util.JavaApiHelper.getClassTag;
 public class SparkContextJavaFunctions {
     public final SparkContext sparkContext;
     private final SparkContextFunctions scf;
+    private final SparkConfFunctions cf;
 
     SparkContextJavaFunctions(SparkContext sparkContext) {
         this.sparkContext = sparkContext;
         this.scf = new SparkContextFunctions(sparkContext);
+        this.cf = new SparkConfFunctions(sparkContext.getConf());
     }
 
     /**

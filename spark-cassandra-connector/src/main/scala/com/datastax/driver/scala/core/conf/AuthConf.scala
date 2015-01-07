@@ -66,4 +66,22 @@ object AuthConf {
       .getOrElse(DefaultAuthConfFactory)
       .authConf(AuthUserName, AuthPassword)
   }
+
+  private[datastax] def unapply(auth: AuthConf): Map[String, String] = {
+    auth match {
+      case NoAuthConf =>
+        Map(Connection.AuthConfFqcnProperty -> NoAuthConf.getClass.getName)
+      case PasswordAuthConf(user,pass) =>
+        Map(
+          Connection.AuthConfFqcnProperty -> classOf[PasswordAuthConf].getName,
+          Connection.AuthUserNameProperty -> user,
+          Connection.AuthPasswordProperty -> pass)
+      case other => other.credentials.collect {
+        case (k,v) if k == "username" => Connection.AuthUserNameProperty -> v
+        case (k,v) if k == "password" => Connection.AuthPasswordProperty -> v
+      } + (Connection.AuthConfFqcnProperty -> other.getClass.getName)
+    }
+
+  }
+
 }

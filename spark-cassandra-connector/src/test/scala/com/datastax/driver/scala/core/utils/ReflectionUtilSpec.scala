@@ -9,7 +9,7 @@ class ReflectionUtilSpec extends FlatSpec with Matchers {
   "ReflectionUtil.findGlobalObject" should "be able to find SimpleConnectionFactory" in {
     val factory = Reflection.findGlobalObject[CassandraConnectionFactory](
       "com.datastax.driver.scala.core.SimpleConnectionFactory")
-    factory.isInstanceOf[SimpleConnectionFactory] should be(classOf[SimpleConnectionFactory])
+    factory should be(SimpleConnectionFactory)
   }
 
   it should "be able to instantiate a singleton object based on Java class name" in {

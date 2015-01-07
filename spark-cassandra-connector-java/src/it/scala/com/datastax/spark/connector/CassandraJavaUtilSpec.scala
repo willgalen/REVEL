@@ -1,6 +1,6 @@
 package com.datastax.spark.connector
 
-import com.datastax.driver.scala.core.CassandraConnector
+import com.datastax.driver.scala.core.Connector$
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.japi.CassandraJavaUtil
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
@@ -13,7 +13,7 @@ import CassandraJavaUtil._
 class CassandraJavaUtilSpec extends FlatSpec with Matchers with BeforeAndAfter with SharedEmbeddedCassandra with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = CassandraConnector(Set(cassandraHost))
+  val conn = Connector(Set(cassandraHost))
 
   before {
     conn.withSessionDo { session =>

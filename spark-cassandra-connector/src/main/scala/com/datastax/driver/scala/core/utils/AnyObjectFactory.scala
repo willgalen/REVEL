@@ -3,6 +3,7 @@ package com.datastax.driver.scala.core.utils
 import java.lang.reflect.Constructor
 
 import scala.reflect.runtime.universe._
+
 import scala.util.{Failure, Success, Try}
 import com.google.common.primitives.Primitives
 import com.thoughtworks.paranamer.AdaptiveParanamer
@@ -107,21 +108,21 @@ class AnyObjectFactory[T: TypeTag] extends Logging with Serializable {
 }
 
 object AnyObjectFactory extends Logging {
-  private[connector] type ParamType = Either[Class[_], String]
+  private[datastax] type ParamType = Either[Class[_], String]
 
-  private[connector] val paranamer = new AdaptiveParanamer
+  private[driver] val paranamer = new AdaptiveParanamer
 
-  private[connector] def getDefaultConstructor[T](clazz: Class[T]): Constructor[T] = {
+  private[driver] def getDefaultConstructor[T](clazz: Class[T]): Constructor[T] = {
     val ctor = clazz.getConstructors()(0)
     paranamer.lookupParameterNames(ctor)
     ctor.asInstanceOf[Constructor[T]]
   }
 
-  private[connector] def getNoArgsConstructor[T](clazz: Class[T]): Constructor[T] = {
+  private[driver] def getNoArgsConstructor[T](clazz: Class[T]): Constructor[T] = {
     getRealEnclosingClass(clazz).fold(clazz.getConstructor())(clazz.getConstructor(_))
   }
 
-  private[connector] def resolveConstructor[T](clazz: Class[T]): Constructor[T] = {
+  private[driver] def resolveConstructor[T](clazz: Class[T]): Constructor[T] = {
     lazy val defaultCtor = Try {
       val ctor = getDefaultConstructor(clazz)
       logDebug(s"Using a default constructor ${ctor.getParameterTypes.map(_.getSimpleName)} for ${clazz.getName}")
@@ -148,18 +149,18 @@ object AnyObjectFactory extends Logging {
      clazz.getConstructors.find(toParamTypeNames(_) == paramTypeNames).get.asInstanceOf[Constructor[T]]
   }
 
-  private[connector] def toParamTypeNames(ctor: Constructor[_]): IndexedSeq[ParamType] = {
+  private[driver] def toParamTypeNames(ctor: Constructor[_]): IndexedSeq[ParamType] = {
     ctor.getParameterTypes.map(c => if (c.isPrimitive) Right(c.getName) else Left(c)).toIndexedSeq
   }
 
-  private[connector] def extractOuterClasses(c: Class[_]): List[Class[_]] = {
+  private[driver] def extractOuterClasses(c: Class[_]): List[Class[_]] = {
     getRealEnclosingClass(c) match {
       case Some(enclosingClass) => enclosingClass :: extractOuterClasses(enclosingClass)
       case None => Nil
     }
   }
 
-  private[connector] def dive(instance: AnyRef): AnyRef = {
+  private[driver] def dive(instance: AnyRef): AnyRef = {
     Try {
       instance.getClass.getDeclaredField("$iw")
     } match {

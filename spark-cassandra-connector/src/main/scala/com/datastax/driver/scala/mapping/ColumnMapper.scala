@@ -1,7 +1,6 @@
 package com.datastax.driver.scala.mapping
 
 import com.datastax.driver.scala.core.TableDef
-import com.datastax.driver.scala.mapping.TupleColumnMapper
 
 import scala.reflect.ClassTag
 

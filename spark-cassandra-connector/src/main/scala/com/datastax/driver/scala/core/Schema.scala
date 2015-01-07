@@ -58,7 +58,7 @@ case class TableDef(keyspaceName: String,
   lazy val allColumns = primaryKey ++ regularColumns
   lazy val columnByName = allColumns.map(c => (c.columnName, c)).toMap
 
-  private[io] def appendRegularColumns(options: Seq[ColumnDef]): TableDef =
+  private[driver] def appendRegularColumns(options: Seq[ColumnDef]): TableDef =
     copy(regularColumns = regularColumns ++ options)
 
   def selectedColumns(columnsToUse: ColumnSelector): Seq[String] =
@@ -75,7 +75,7 @@ case class TableDef(keyspaceName: String,
 
 }
 object TableDef {
-  def apply(connector: CassandraConnector, keyspaceName: String, tableName: String): TableDef = {
+  def apply(connector: Connector, keyspaceName: String, tableName: String): TableDef = {
     Schema.fromCassandra(connector, Some(keyspaceName), Some(tableName))
       .tables.headOption
       .getOrElse(throw new IOException(s"Table not found: $keyspaceName.$tableName"))
@@ -129,7 +129,7 @@ object Schema extends Logging {
     * @param keyspaceName if defined, fetches only metadata of the given keyspace
     * @param tableName if defined, fetches only metadata of the given table
     */
-  def fromCassandra(connector: CassandraConnector, keyspaceName: Option[String] = None, tableName: Option[String] = None): Schema = {
+  def fromCassandra(connector: Connector, keyspaceName: Option[String] = None, tableName: Option[String] = None): Schema = {
 
     def isKeyspaceSelected(keyspace: KeyspaceMetadata): Boolean =
       keyspaceName match {

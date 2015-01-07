@@ -90,7 +90,6 @@ object Dependencies {
     }
 
     object Embedded {
-      val akkaCluster       = "com.typesafe.akka"       %% "akka-cluster"          % Akka                                      // ApacheV2
       val kafka             = "org.apache.kafka"        %% "kafka"                 % Kafka exclude("org.slf4j", "slf4j-simple") // ApacheV2
       val cassandraServer   = "org.apache.cassandra"    % "cassandra-all"          % Cassandra exclude("ch.qos.logback", "logback-classic") exclude("ch.qos.logback", "logback-core") // ApacheV2
       val jopt              = "net.sf.jopt-simple"      % "jopt-simple"            % JOpt // For kafka command line work
@@ -129,8 +128,14 @@ object Dependencies {
 
   val spark = Seq(sparkCore, sparkStreaming, sparkSql, sparkCatalyst, sparkHive)
 
+  val driver = Seq(
+    "com.typesafe.akka" %% "akka-cluster" % Akka % "provided",
+    /*"com.typesafe.akka" % "akka-http-experimental_2.10" % "1.0-M2",
+    "com.typesafe.akka" % "akka-http-core-experimental_2.10" % "1.0-M2",*/
+    "com.typesafe.akka" % "akka-stream-experimental_2.10" % "1.0-M2"
+  )
   val connector = testKit ++ metrics ++ logging ++ akka ++ cassandra ++ spark.map(_ % "provided") ++ Seq(
-    commonsLang3, config, guava, jodaC, jodaT, lzf, reflect)
+    commonsLang3, config, guava, jodaC, jodaT, lzf, reflect) ++ driver
 
   val embedded = logging ++ spark ++ cassandra ++ Seq(
     Embedded.cassandraServer, Embedded.jopt, Embedded.kafka, Embedded.sparkRepl)

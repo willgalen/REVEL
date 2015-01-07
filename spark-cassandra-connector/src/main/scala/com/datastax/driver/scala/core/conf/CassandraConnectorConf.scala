@@ -24,29 +24,30 @@ case class CassandraConnectorConf(hosts: Set[InetAddress],
                                   rpcPort: Int,
                                   authConf: AuthConf,
                                   connectionFactory: CassandraConnectionFactory,
-                                  clusterConf: CassandraClusterConf)
+                                  clusterConf: ClusterConf = ClusterConf.Default)
 
 /** Companion object for `CassandraConnectorConf` instances. Allows for manually setting
   * connection values or reading them from system properties, which are needed for
   * establishing connections to a Cassandra cluster. */
 object CassandraConnectorConf extends Logging {
+  import Connection._
+
+  final val Default = CassandraConnectorConf(
+    hosts = Set(InetAddress.getLocalHost),
+    nativePort = DefaultNativePort,
+    rpcPort = DefaultRpcPort,
+    authConf = NoAuthConf,
+    connectionFactory = SimpleConnectionFactory, ClusterConf.Default)
 
   def apply(settings: CassandraSettings): CassandraConnectorConf =
     CassandraConnectorConf(
-      hosts = settings.CassandraHosts,
-      nativePort = settings.NativePort,
-      rpcPort = settings.RpcPort,
-      authConf = AuthConf(settings),
-      connectionFactory = CassandraConnectionFactory(settings),
-      clusterConf = CassandraClusterConf(settings))
+      settings.CassandraHosts,
+      settings.NativePort,
+      settings.RpcPort,
+      AuthConf(settings),
+      CassandraConnectionFactory(settings),
+      ClusterConf(settings))
 
-  /** Returns an instance of CassandraConnectorConf with all default settings and local host. */
-  def apply(host: InetAddress = InetAddress.getLocalHost,
-            auth: AuthConf = NoAuthConf): CassandraConnectorConf = {
-    import Connection._
-    CassandraConnectorConf(Set(host), DefaultNativePort, DefaultRpcPort, auth,
-      SimpleConnectionFactory, CassandraClusterConf())
-  }
 }
 
 /** Used by the [[SimpleConnectionFactory]] to configure the cluster.
@@ -67,30 +68,29 @@ object CassandraConnectorConf extends Logging {
   *
   * @param readTimeout the read timeout in millis
   */
-case class CassandraClusterConf(minReconnectDelay: Int,
-                                maxReconnectDelay: Int,
-                                localDc: Option[String],
-                                queryRetries: Int,
-                                timeout: Int,
-                                readTimeout: Int)
+case class ClusterConf(minReconnectDelay: Int,
+                       maxReconnectDelay: Int,
+                       localDc: Option[String],
+                       queryRetries: Int,
+                       timeout: Int,
+                       readTimeout: Int)
 
-object CassandraClusterConf {
-  def apply(settings: CassandraSettings): CassandraClusterConf =
-    CassandraClusterConf(
-      minReconnectDelay = settings.ClusterReconnectDelayMin,
-      maxReconnectDelay = settings.ClusterReconnectDelayMax,
-      localDc = settings.ClusterLocalDc,
-      queryRetries = settings.ClusterQueryRetries,
-      timeout = settings.ClusterTimeout,
-      readTimeout = settings.ClusterReadTimeout)
+object ClusterConf {
 
-  /** Returns a `CassandraClusterConf` instance with only default settings applied. */
- def apply(): CassandraClusterConf =
-    CassandraClusterConf(
-      minReconnectDelay = Cluster.DefaultReconnectDelayMin,
-      maxReconnectDelay = Cluster.DefaultReconnectDelayMax,
-      localDc = None,
-      queryRetries = Cluster.DefaultQueryRetryCountMillis,
-      timeout = Cluster.DefaultTimeoutMillis,
-      readTimeout = Cluster.DefaultReadTimeoutMillis)
+  final val Default = ClusterConf(
+    minReconnectDelay = Cluster.DefaultReconnectDelayMin,
+    maxReconnectDelay = Cluster.DefaultReconnectDelayMax,
+    localDc = None,
+    queryRetries = Cluster.DefaultQueryRetryCountMillis,
+    timeout = Cluster.DefaultTimeoutMillis,
+    readTimeout = Cluster.DefaultReadTimeoutMillis)
+  
+  def apply(settings: CassandraSettings): ClusterConf =
+    ClusterConf(settings.ClusterReconnectDelayMin,
+      settings.ClusterReconnectDelayMax,
+      settings.ClusterLocalDc,
+      settings.ClusterQueryRetries,
+      settings.ClusterTimeout,
+      settings.ClusterReadTimeout)
+ 
 }

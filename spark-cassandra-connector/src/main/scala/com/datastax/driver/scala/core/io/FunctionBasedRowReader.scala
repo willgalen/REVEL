@@ -1,6 +1,8 @@
 package com.datastax.driver.scala.core.io
 
 import com.datastax.driver.core.{ProtocolVersion, Row}
+import com.datastax.driver.scala.core.AbstractRow
+import com.datastax.driver.scala.types.TypeConverter
 
 import scala.reflect.ClassTag
 

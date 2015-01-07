@@ -5,13 +5,16 @@ import java.util.concurrent.{Executors, ThreadFactory, TimeUnit}
 import scala.annotation.tailrec
 import scala.collection.concurrent.TrieMap
 
-
 /** A lockless cache that caches values for multiple users
   * and destroys them once all users release them. One value can be associated with many keys.
   * Useful for sharing a costly resource.
+  *
   * @param create function to create new objects if not found in cache
+  *
   * @param destroy function to be called once the value is not used any more
+  *
   * @param keys function generating additional keys the value should be reachable by
+  *
   * @param releaseDelayMillis number of milliseconds to keep unused values in cache, before they are removed. */
 final class RefCountedCache[K, V](create: K => V,
                                   destroy: V => Any,

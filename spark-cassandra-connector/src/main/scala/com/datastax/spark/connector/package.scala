@@ -5,8 +5,6 @@ import scala.language.implicitConversions
 import scala.reflect.ClassTag
 import org.apache.spark.{SparkConf, SparkContext}
 import org.apache.spark.rdd.RDD
-import com.datastax.driver.scala.core.conf.{CassandraConnectorConf, CassandraSettings}
-import com.datastax.spark.connector.cql.SparkCassandraConnector
 
 /**
  * The root package of Cassandra connector for Apache Spark.
@@ -36,6 +34,11 @@ import com.datastax.spark.connector.cql.SparkCassandraConnector
  *   // Tell Spark the address of one Cassandra node:
  *   val conf = new SparkConf(true).set("spark.cassandra.connection.host", cassandraHost)
  *
+ *   // Allows settings from SparkConf to override any settings
+ *   // in the environment that may exist, which fall back to java system properties if
+ *   // any exist, and then to the respective default.
+ *   implicit val settings = conf.cassandraSettings
+ *
  *   // Connect to the Spark cluster:
  *   val sc = new SparkContext("spark://" + sparkMasterHost + ":7077", "example", conf)
  *
@@ -52,19 +55,13 @@ import com.datastax.spark.connector.cql.SparkCassandraConnector
  */
 package object connector {
 
+  implicit def toSparkConfFunctions(conf: SparkConf): SparkConfFunctions =
+    new SparkConfFunctions(conf)
+
   implicit def toSparkContextFunctions(sc: SparkContext): SparkContextFunctions =
     new SparkContextFunctions(sc)
 
   implicit def toRDDFunctions[T : ClassTag](rdd: RDD[T]): RDDFunctions[T] =
     new RDDFunctions[T](rdd)
-
-  implicit def toSettings(conf: SparkConf): CassandraSettings =
-    CassandraSettings("spark.", conf.getAll.toMap)
-
-  implicit def toConnectorConf(conf: SparkConf): CassandraConnectorConf =
-    CassandraConnectorConf(toSettings(conf))
-
-  implicit def toCassandraConnector(conf: SparkConf): SparkCassandraConnector =
-    SparkCassandraConnector(conf)
 
 }

@@ -1,5 +1,6 @@
 package com.datastax.spark.connector;
 
+import com.datastax.driver.scala.core.utils.JavaApiHelper;
 import com.datastax.spark.connector.japi.DStreamJavaFunctions;
 import com.datastax.spark.connector.japi.RDDJavaFunctions;
 import com.datastax.spark.connector.japi.SparkContextJavaFunctions;
@@ -9,7 +10,6 @@ import com.datastax.driver.scala.core.io.ClassBasedRowReaderFactory;
 import com.datastax.driver.scala.core.io.RowReaderFactory;
 import com.datastax.driver.scala.core.io.ValueRowReaderFactory;
 import com.datastax.driver.scala.types.TypeConverter;
-import com.datastax.spark.connector.util.JavaApiHelper;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.SparkContext;
 import org.apache.spark.api.java.JavaRDD;

@@ -1,9 +1,8 @@
 package com.datastax.driver.scala.core.io
 
+import org.apache.spark.sql.catalyst.expressions.Row
 import com.datastax.driver.core.{PreparedStatement, ProtocolVersion}
 import com.datastax.driver.scala.core.{CassandraRow, TableDef}
-import com.datastax.spark.connector.writer.ObjectSizeEstimator
-import org.apache.spark.sql.catalyst.expressions.Row
 
 /** A [[RowWriter]] that can write SparkSQL [[Row]] objects or [[CassandraRow]] objects .*/
 abstract class AbstractRowWriter[T](table: TableDef, selectedColumns: Seq[String]) extends RowWriter[T] {

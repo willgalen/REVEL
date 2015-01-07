@@ -15,11 +15,11 @@ import com.datastax.driver.scala.core.io.{CqlWhereClause, CqlTokenRange, CqlWher
 import com.datastax.driver.scala.core.partition.{TokenRangeClusterer, CassandraNode, TokenFactory, Token}
 import com.datastax.driver.scala.core.TableDef
 import com.datastax.driver.scala.core.io.CqlWhereParser._
-import com.datastax.spark.connector.cql.SparkCassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 
 /** Creates CassandraPartitions for given Cassandra table */
 class CassandraRDDPartitioner[V, T <: Token[V]](
-    connector: SparkCassandraConnector,
+    connector: CassandraConnector,
     tableDef: TableDef,
     splitSize: Long)(
   implicit

@@ -2,15 +2,14 @@ package com.datastax.spark.connector.rdd.partitioner
 
 import java.net.InetAddress
 
-import com.datastax.driver.scala.core
+import com.datastax.driver.scala.core.partition
 import com.datastax.driver.scala.core.partition.{TokenRangeClusterer, CassandraNode, LongToken}
-import com.datastax.driver.scala.core.{CassandraNode, LongToken}
 import org.junit.Assert._
 import org.junit.Test
 
 class TokenRangeClustererTest {
 
-  type TokenRange = core.TokenRange[Long, LongToken]
+  type TokenRange = partition.TokenRange[Long, LongToken]
 
   val addr1 = InetAddress.getByName("192.168.123.1")
   val addr2 = InetAddress.getByName("192.168.123.2")

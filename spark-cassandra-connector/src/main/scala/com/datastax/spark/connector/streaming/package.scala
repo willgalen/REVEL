@@ -1,10 +1,10 @@
 package com.datastax.spark.connector
 
+import scala.language.implicitConversions
+
+import scala.reflect.ClassTag
 import org.apache.spark.streaming.StreamingContext
 import org.apache.spark.streaming.dstream.DStream
-
-import scala.language.implicitConversions
-import scala.reflect.ClassTag
 
 package object streaming {
 

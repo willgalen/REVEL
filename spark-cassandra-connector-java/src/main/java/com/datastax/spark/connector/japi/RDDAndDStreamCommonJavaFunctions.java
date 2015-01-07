@@ -1,16 +1,14 @@
 package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.scala.core.*;
-import com.datastax.driver.scala.core.conf.WriteConf;
+import com.datastax.driver.scala.core.conf.*;
 import com.datastax.driver.scala.core.io.*;
-import scala.Option;
 import com.datastax.driver.core.ConsistencyLevel;
-import com.datastax.driver.scala.core.conf.CassandraSettings.Write;
-import com.datastax.driver.scala.core.BatchSize;
+import com.datastax.spark.connector.SparkConfFunctions;
+import com.datastax.spark.connector.cql.CassandraConnector;
 import org.apache.spark.SparkConf;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
-import scala.runtime.AbstractFunction1;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -30,30 +28,30 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
     /**
      * Returns the default Cassandra connector instance for the wrapped RDD or DStream.
      *
-     * @return an instance of {@link com.datastax.driver.scala.core.CassandraConnector}
+     * @return an instance of {@link com.datastax.driver.scala.core.Connector}
      */
     public abstract CassandraConnector defaultConnector();
 
     protected abstract SparkConf getConf();
 
+    protected abstract  SparkConfFunctions getConfFunctions();
+
     /**
-     * Returns the default write configuration instance for the wrapped RDD or DStream.
+     * Returns the write configuration instance for the wrapped RDD or DStream.
      *
      * @return an instance of {@link com.datastax.driver.scala.core.conf.WriteConf}
      */
     public WriteConf defaultWriteConf() {
-        String ns = "spark.";
-        SparkConf conf = getConf();
+        return getConfFunctions().writeConf();
+    }
 
-        Option bs = conf.getOption(ns + Write.BatchSizeInBytesProperty()).map(new AbstractFunction1<String, Integer>() {
-          @Override public Integer apply(String v1) { return Integer.valueOf(v1); }});
-        Option cs = conf.getOption(ns + Write.ConsistencyLevelProperty()).map(new AbstractFunction1<String, ConsistencyLevel>() {
-          @Override public ConsistencyLevel apply(String v1) { return ConsistencyLevel.valueOf(v1); }});
-        Option bsr = conf.getOption(ns + Write.BatchSizeInRowsProperty());
-        Option pl = conf.getOption(ns + Write.ParallelismLevelProperty()).map(new AbstractFunction1<String, Integer>() {
-          @Override public Integer apply(String v1) { return Integer.valueOf(v1); }});
-
-        return WriteConf.apply(bs, cs, bsr, pl);
+    /**
+     * Returns the write configuration instance for the wrapped RDD or DStream.
+     *
+     * @return an instance of {@link com.datastax.driver.scala.core.conf.ReadConf}
+     */
+    public ReadConf defaultReadConf() {
+        return getConfFunctions().readConf();
     }
 
     protected abstract void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory,
@@ -66,6 +64,10 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
     @Deprecated
     public void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory, ColumnSelector columnNames) {
         new WriterBuilder(keyspace, table, rowWriterFactory, columnNames, defaultConnector(), defaultWriteConf()).saveToCassandra();
+    }
+
+    public void saveToCassandra(String keyspace, String table, RowWriterFactory<T> rowWriterFactory, ColumnSelector columnNames, CassandraSettings settings) {
+        new WriterBuilder(keyspace, table, rowWriterFactory, columnNames, settings).saveToCassandra();
     }
 
     /**
@@ -114,6 +116,19 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
 
         /** A set of write operation parameters which are related mainly to performance and failure tolerance. */
         public final WriteConf writeConf;
+
+        /**
+         * Refer to particular fields description for more information.
+         */
+        public WriterBuilder(String keyspaceName, String tableName, RowWriterFactory<T> rowWriterFactory,
+                             ColumnSelector columnSelector, CassandraSettings settings) {
+            this.keyspaceName = keyspaceName;
+            this.tableName = tableName;
+            this.rowWriterFactory = rowWriterFactory;
+            this.columnSelector = columnSelector;
+            this.connector = CassandraConnector.apply(getConfFunctions().connectorConf());
+            this.writeConf = WriteConf.apply(settings);
+        }
 
         /**
          * Refer to particular fields description for more information.

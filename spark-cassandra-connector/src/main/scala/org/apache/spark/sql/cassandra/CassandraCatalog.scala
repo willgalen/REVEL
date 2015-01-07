@@ -4,7 +4,7 @@ import java.io.IOException
 import java.util.concurrent.TimeUnit
 
 import com.datastax.driver.scala.core.Schema
-import com.datastax.spark.connector.SparkCassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 import com.google.common.cache.{CacheBuilder, CacheLoader}
 import org.apache.spark.sql.catalyst.analysis.Catalog
 import org.apache.spark.sql.catalyst.plans.logical.{LogicalPlan, Subquery}
@@ -19,7 +19,7 @@ private[cassandra] class CassandraCatalog(cc: CassandraSQLContext) extends Catal
        .build(
           new CacheLoader[String, Schema] {
             def load(cluster: String) : Schema = {
-              Schema.fromCassandra(SparkCassandraConnector(cc.conf))
+              Schema.fromCassandra(CassandraConnector(cc.conf))
             }
           })
 

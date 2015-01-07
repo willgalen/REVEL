@@ -2,9 +2,10 @@ package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.scala.core.ColumnSelector;
 import com.datastax.spark.connector.RDDFunctions;
-import com.datastax.driver.scala.core.CassandraConnector;
 import com.datastax.driver.scala.core.io.RowWriterFactory;
 import com.datastax.driver.scala.core.conf.WriteConf;
+import com.datastax.spark.connector.SparkConfFunctions;
+import com.datastax.spark.connector.cql.CassandraConnector;
 import org.apache.spark.SparkConf;
 import org.apache.spark.rdd.RDD;
 
@@ -32,6 +33,11 @@ public class RDDJavaFunctions<T> extends RDDAndDStreamCommonJavaFunctions<T> {
     @Override
     protected SparkConf getConf() {
         return rdd.conf();
+    }
+
+    @Override
+    protected SparkConfFunctions getConfFunctions() {
+        return new SparkConfFunctions(getConf());
     }
 
     @Override

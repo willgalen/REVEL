@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.demo
 
-import com.datastax.driver.scala.core.CassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 
 import scala.collection.immutable
 import scala.concurrent.duration._

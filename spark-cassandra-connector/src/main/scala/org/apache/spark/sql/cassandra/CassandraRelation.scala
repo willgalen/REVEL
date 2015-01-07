@@ -4,7 +4,7 @@ import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
 import org.apache.spark.sql.catalyst.plans.logical.LeafNode
 import org.apache.spark.sql.catalyst
 import com.datastax.driver.scala.core.{TableDef, ColumnDef}
-import com.datastax.spark.connector
+import com.datastax.driver
 
 private[cassandra] case class CassandraRelation
   (tableDef: TableDef, alias: Option[String])(@transient cc: CassandraSQLContext)
@@ -38,32 +38,32 @@ private[cassandra] case class CassandraRelation
 
 object ColumnDataType {
 
-  private val primitiveTypeMap = Map[com.datastax.driver.scala.types.ColumnType[_], catalyst.types.DataType](
+  private val primitiveTypeMap = Map[driver.scala.types.ColumnType[_], catalyst.types.DataType](
 
-    connector.types.TextType       -> catalyst.types.StringType,
-    connector.types.AsciiType      -> catalyst.types.StringType,
-    connector.types.VarCharType    -> catalyst.types.StringType,
+    driver.scala.types.TextType       -> catalyst.types.StringType,
+    driver.scala.types.AsciiType      -> catalyst.types.StringType,
+    driver.scala.types.VarCharType    -> catalyst.types.StringType,
 
-    connector.types.BooleanType    -> catalyst.types.BooleanType,
+    driver.scala.types.BooleanType    -> catalyst.types.BooleanType,
 
-    connector.types.IntType        -> catalyst.types.IntegerType,
-    connector.types.BigIntType     -> catalyst.types.LongType,
-    connector.types.CounterType    -> catalyst.types.LongType,
-    connector.types.FloatType      -> catalyst.types.FloatType,
-    connector.types.DoubleType     -> catalyst.types.DoubleType,
-  
-    connector.types.VarIntType     -> catalyst.types.DecimalType, // no native arbitrary-size integer type
-    connector.types.DecimalType    -> catalyst.types.DecimalType,
+    driver.scala.types.IntType        -> catalyst.types.IntegerType,
+    driver.scala.types.BigIntType     -> catalyst.types.LongType,
+    driver.scala.types.CounterType    -> catalyst.types.LongType,
+    driver.scala.types.FloatType      -> catalyst.types.FloatType,
+    driver.scala.types.DoubleType     -> catalyst.types.DoubleType,
 
-    connector.types.TimestampType  -> catalyst.types.TimestampType,
-    connector.types.InetType       -> catalyst.types.StringType, 
-    connector.types.UUIDType       -> catalyst.types.StringType,
-    connector.types.TimeUUIDType   -> catalyst.types.StringType,
-    connector.types.BlobType       -> catalyst.types.ByteType,
+    driver.scala.types.VarIntType     -> catalyst.types.DecimalType, // no native arbitrary-size integer type
+    driver.scala.types.DecimalType    -> catalyst.types.DecimalType,
+
+    driver.scala.types.TimestampType  -> catalyst.types.TimestampType,
+    driver.scala.types.InetType       -> catalyst.types.StringType,
+    driver.scala.types.UUIDType       -> catalyst.types.StringType,
+    driver.scala.types.TimeUUIDType   -> catalyst.types.StringType,
+    driver.scala.types.BlobType       -> catalyst.types.ByteType,
   
     // TODO: This mapping is useless, it is here only to avoid lookup failure if a table contains a UDT column. 
     // It is not possible to read UDT columns in SparkSQL now. 
-    connector.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
+    driver.scala.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
   )
 
   def catalystDataType(cassandraType: com.datastax.driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {

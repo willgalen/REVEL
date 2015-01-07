@@ -1,7 +1,9 @@
 package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.scala.core.ColumnSelector;
-import com.datastax.driver.scala.core.CassandraConnector;
+import com.datastax.driver.scala.core.Connector;
+import com.datastax.spark.connector.SparkConfFunctions;
+import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.streaming.DStreamFunctions;
 import com.datastax.driver.scala.core.io.RowWriterFactory;
 import com.datastax.driver.scala.core.conf.WriteConf;
@@ -33,6 +35,11 @@ public class DStreamJavaFunctions<T> extends RDDAndDStreamCommonJavaFunctions<T>
     @Override
     protected SparkConf getConf() {
         return dstream.ssc().conf();
+    }
+
+    @Override
+    protected SparkConfFunctions getConfFunctions() {
+        return new SparkConfFunctions(getConf());
     }
 
     @Override

@@ -2,19 +2,18 @@ package com.datastax.driver.scala.core
 
 import java.nio.ByteBuffer
 
-import com.datastax.driver.core.{ProtocolVersion, Row}
-import org.apache.cassandra.utils.ByteBufferUtil
-
 import scala.collection.JavaConversions._
+import org.apache.cassandra.utils.ByteBufferUtil
+import com.datastax.driver.core.{ProtocolVersion, Row}
 
 abstract class AbstractRow(val data: IndexedSeq[AnyRef], val columnNames: IndexedSeq[String]) extends Serializable {
 
   @transient
-  private[connector] lazy val _indexOf =
+  private[core] lazy val _indexOf =
     columnNames.zipWithIndex.toMap.withDefaultValue(-1)
 
   @transient
-  private[connector] lazy val _indexOfOrThrow = _indexOf.withDefault { name =>
+  private[datastax] lazy val _indexOfOrThrow = _indexOf.withDefault { name =>
     throw new ColumnNotFoundException(
       s"Column not found: $name. " +
         s"Available columns are: ${columnNames.mkString("[", ", ", "]")}")
@@ -55,7 +54,7 @@ object AbstractRow {
 
   /* ByteBuffers are not serializable, so we need to convert them to something that is serializable.
      Array[Byte] seems reasonable candidate. Additionally converts Java collections to Scala ones. */
-  private[connector] def convert(obj: Any): AnyRef = {
+  private[core] def convert(obj: Any): AnyRef = {
     obj match {
       case bb: ByteBuffer => ByteBufferUtil.getArray(bb)
       case list: java.util.List[_] => list.view.map(convert).toList

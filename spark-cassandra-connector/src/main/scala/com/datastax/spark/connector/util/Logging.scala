@@ -19,7 +19,6 @@ package com.datastax.spark.connector.util
 
 import org.apache.log4j.{LogManager, PropertyConfigurator}
 import org.apache.spark.SparkContext
-import org.slf4j.Logger
 import org.slf4j.impl.StaticLoggerBinder
 import com.datastax.driver.scala.core.utils.{Logging => ScalaDriverLogging}
 /**

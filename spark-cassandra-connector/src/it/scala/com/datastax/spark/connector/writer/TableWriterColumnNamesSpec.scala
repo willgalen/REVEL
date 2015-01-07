@@ -5,11 +5,12 @@ import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.io.{TableWriter, TimestampOption, TTLOption}
 import com.datastax.spark.connector.testkit._
 import com.datastax.spark.connector.embedded._
+import com.datastax.spark.connector._
 
 class TableWriterColumnNamesSpec extends AbstractSpec with SharedEmbeddedCassandra with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = CassandraConnector(cassandraHost)
+  val conn = Connector(cassandraHost)
 
   case class KeyValue(key: Int, group: Long)
 
@@ -30,7 +31,7 @@ class TableWriterColumnNamesSpec extends AbstractSpec with SharedEmbeddedCassand
         keyspaceName = "column_names_test",
         tableName = "key_value",
         columnNames = AllColumns,
-        writeConf = WriteConf()
+        writeConf = conf.writeConf
       )
 
       writer.columnNames.size should be (all.size)

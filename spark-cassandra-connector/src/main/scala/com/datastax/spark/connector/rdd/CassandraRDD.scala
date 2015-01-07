@@ -2,22 +2,23 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
+import scala.language.existentials
+
 import scala.reflect.ClassTag
 import scala.collection.JavaConversions._
-import scala.language.existentials
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, TaskContext}
 import com.datastax.driver.scala.core.io._
 import com.datastax.driver.scala.core.partition.TokenFactory
 import com.datastax.driver.scala.core.utils.CountingIterator
-import com.datastax.driver.scala.core.{Schema, CassandraConnector}
+import com.datastax.driver.scala.core.Schema
 import com.datastax.driver.scala.types.{ColumnType, TypeConverter}
 import com.datastax.driver.core.{Session, Statement}
 import com.datastax.driver.scala.core._
 import com.datastax.spark.connector.rdd.partitioner.{CassandraPartition, CassandraRDDPartitioner}
 import com.datastax.spark.connector.util.Logging
 import com.datastax.driver.scala.core.conf.ReadConf
-import com.datastax.spark.connector.cql.SparkCassandraConnector
+import com.datastax.spark.connector.cql.CassandraConnector
 
 /** RDD representing a Cassandra table.
   * This class is the main entry point for analyzing data in Cassandra database with Spark.
@@ -26,7 +27,7 @@ import com.datastax.spark.connector.cql.SparkCassandraConnector
   * Configuration properties should be passed in the `SparkConf` configuration of `SparkContext`.
   * `CassandraRDD` needs to open connection to Cassandra, therefore it requires appropriate connection property values
   * to be present in `SparkConf`. For the list of required and available properties, see
-  * [[com.datastax.spark.connector.cql.SparkCassandraConnector CassandraConnector]].
+  * [[com.datastax.spark.connector.cql.CassandraConnector CassandraConnector]].
   *
   * `CassandraRDD` divides the dataset into smaller partitions, processed locally on every cluster node.
   * A data partition consists of one or more contiguous token ranges.
@@ -47,12 +48,12 @@ import com.datastax.spark.connector.cql.SparkCassandraConnector
   */
 class CassandraRDD[R] private[connector] (
     @transient sc: SparkContext,
-    val connector: SparkCassandraConnector,
+    val connector: CassandraConnector,
     val keyspaceName: String,
     val tableName: String,
     val columnNames: ColumnSelector = AllColumns,
     val where: CqlWhereClause = CqlWhereClause.empty,
-    val readConf: ReadConf = ReadConf())(
+    val readConf: ReadConf)(
   implicit
     ct : ClassTag[R], @transient rtf: RowReaderFactory[R])
   extends RDD[R](sc, Seq.empty) with Logging {
@@ -78,11 +79,11 @@ class CassandraRDD[R] private[connector] (
 
   private def copy(columnNames: ColumnSelector = columnNames,
                    where: CqlWhereClause = where,
-                   readConf: ReadConf = readConf, connector: SparkCassandraConnector = connector): CassandraRDD[R] =
+                   readConf: ReadConf = readConf, connector: CassandraConnector = connector): CassandraRDD[R] =
     new CassandraRDD(sc, connector, keyspaceName, tableName, columnNames, where, readConf)
 
   /** Returns a copy of this Cassandra RDD with specified connector */
-  def withConnector(connector: SparkCassandraConnector): CassandraRDD[R] =
+  def withConnector(connector: CassandraConnector): CassandraRDD[R] =
     copy(connector = connector)
 
   /** Adds a CQL `WHERE` predicate(s) to the query.
@@ -405,14 +406,15 @@ class CassandraRDD[R] private[connector] (
 }
 
 object CassandraRDD {
+  import com.datastax.spark.connector._
 
   def apply[T](sc: SparkContext, keyspaceName: String, tableName: String)
               (implicit ct: ClassTag[T], rrf: RowReaderFactory[T]): CassandraRDD[T] =
     new CassandraRDD[T](
-      sc, SparkCassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
+      sc, CassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty, sc.readConf)
 
   def apply[K, V](sc: SparkContext, keyspaceName: String, tableName: String)
                  (implicit keyCT: ClassTag[K], valueCT: ClassTag[V], rrf: RowReaderFactory[(K, V)]): CassandraRDD[(K, V)] =
     new CassandraRDD[(K, V)](
-      sc, SparkCassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty)
+      sc, CassandraConnector(sc.getConf), keyspaceName, tableName, AllColumns, CqlWhereClause.empty, sc.readConf)
 }

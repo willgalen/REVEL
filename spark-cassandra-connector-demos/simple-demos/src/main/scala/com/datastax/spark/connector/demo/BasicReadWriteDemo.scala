@@ -1,6 +1,7 @@
 package com.datastax.spark.connector.demo
 
-import com.datastax.driver.scala.core.{SomeColumns, CassandraConnector}
+import com.datastax.driver.scala.core.SomeColumns
+import com.datastax.spark.connector.cql.CassandraConnector
 
 object BasicReadWriteDemo extends DemoApp {
 

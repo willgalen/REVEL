@@ -25,7 +25,7 @@ class MutableKeyValueWithConversion(var key: String, var group: Int) extends Ser
 class CassandraRDDSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = CassandraConnector(cassandraHost)
+  val conn = Connector(cassandraHost)
   val bigTableRowCount = 100000
 
 

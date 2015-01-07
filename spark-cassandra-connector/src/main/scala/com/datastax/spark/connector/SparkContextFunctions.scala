@@ -1,17 +1,45 @@
 package com.datastax.spark.connector
 
-import com.datastax.driver.scala.core.conf.{CassandraSettings, ReadConf}
+import org.apache.spark.{SparkConf, SparkContext}
+import com.datastax.driver.scala.core.conf._
+import com.datastax.driver.scala.core.conf.Configuration._
 import com.datastax.driver.scala.core.io.RowReaderFactory
-import com.datastax.spark.connector.cql.SparkCassandraConnector
-import org.apache.spark.SparkContext
-import com.datastax.driver.scala.core.{CassandraRow, CassandraConnector}
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.driver.scala.core.CassandraRow
 import com.datastax.driver.scala.mapping.ColumnMapper
 import com.datastax.spark.connector.rdd.{ValidRDDType, CassandraRDD}
 
 import scala.reflect.ClassTag
 
-/** Provides Cassandra-specific methods on `SparkContext` */
-class SparkContextFunctions(@transient val sc: SparkContext)(implicit settings: CassandraSettings) extends Serializable {
+/** Provides Cassandra-specific methods on `SparkContext`. */
+class SparkContextFunctions(@transient val sc: SparkContext) extends ConfigurationFunctions {
+
+  /**
+   * Transforms any optionally set configuration settings in `SparkConf` from `SparkContext`
+   * to property names and values used in the scala driver. In this way, you can
+   * leverage the implicit fallback chain of settings:
+   * 1. Any settings in SparkConf from `SparkContext`
+   * 2. Any settings in the environment
+   * 3. Any settings in java system properties
+   * 4. Default Settings
+   *
+   * This functionality is made available on `SparkContext` by importing `com.datastax.spark.connector._`
+   * {{{
+   *   import com.datastax.spark.connector._
+   *
+   *   val sc = new SparkContext()
+   *
+   *   val settings: CassandraSettings = sc.settings
+   *   CassandraConnector(sc.connectorConf)
+   *
+   *   val rdd = sc.cassandraTable("test", "key_value")
+   *
+   *   sc.parallelize(Seq((4, "fourth row"), (5, "fifth row")))
+   *     .saveToCassandra("test", "key_value", SomeColumns("key", "value"), sc.writeConf)
+   *
+   * }}}
+   */
+  def conf: SparkConf = sc.getConf
 
   /** Returns a view of a Cassandra table as `CassandraRDD`.
     * This method is made available on `SparkContext` by importing `com.datastax.spark.connector._`
@@ -46,10 +74,55 @@ class SparkContextFunctions(@transient val sc: SparkContext)(implicit settings: 
     *   val rdd3 = sc.cassandraTable[WordCount]("test", "words")
     *   rdd3.first.word  // foo
     *   rdd3.first.count // 20
-    * }}}*/
+    * }}}
+    */
   def cassandraTable[T](keyspace: String, table: String)
-                       (implicit connector: SparkCassandraConnector = SparkCassandraConnector(sc.getConf),
+                       (implicit connector: CassandraConnector = CassandraConnector(sc.getConf),
                         ct: ClassTag[T], rrf: RowReaderFactory[T],
                         ev: ValidRDDType[T]) =
-    new CassandraRDD[T](sc, connector, keyspace, table, readConf = ReadConf(settings))
+    new CassandraRDD[T](sc, connector, keyspace, table, readConf = sc.readConf)
+}
+
+/** Transforms any optionally set configuration settings in `SparkConf` to
+  * property names and values used in the scala driver. In this way, you can
+  * leverage the implicit fallback chain of settings:
+  * 1. Any settings in SparkConf
+  * 2. Any settings in the environment
+  * 3. Any settings in java system properties
+  * 4. Default Settings
+  *
+  * This functionality is made available on `SparkConf` by importing `com.datastax.spark.connector._`
+  * {{{
+  *   import com.datastax.spark.connector._
+  *
+  *   val conf = new SparkConf()
+  *
+  *   val settings: CassandraSettings = conf.settings
+  *   CassandraConnector(conf.connectorConf)
+  *
+  *   val rdd = sc.cassandraTable("test", "key_value")
+  *
+  *   sc.parallelize(Seq((4, "fourth row"), (5, "fifth row")))
+  *     .saveToCassandra("test", "key_value", SomeColumns("key", "value"), conf.writeConf)
+  * }}}
+  */
+class SparkConfFunctions(@transient val conf: SparkConf) extends ConfigurationFunctions
+
+trait ConfigurationFunctions extends Serializable {
+
+  def conf: SparkConf
+
+  def settings: CassandraSettings = CassandraSettings(Source(filtered), Some("spark."))
+
+  def connectorConf: CassandraConnectorConf = CassandraConnectorConf(settings)
+
+  def writeConf: WriteConf = WriteConf(settings)
+
+  def readConf: ReadConf = ReadConf(settings)
+
+  private def filtered: Map[String,String] =
+    conf.getAll.toMap.filterKeys(namespace)
+
+  private def namespace(value: String) =
+    value.startsWith("spark.cassandra.") || value.startsWith("cassandra.")
 }

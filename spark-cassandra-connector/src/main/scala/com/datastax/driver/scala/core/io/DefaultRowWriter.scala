@@ -7,7 +7,6 @@ import com.datastax.driver.scala.core.{ColumnIndex, ColumnName, ColumnRef, Table
 import com.datastax.driver.scala.mapping
 import com.datastax.driver.scala.mapping.ColumnMapper
 import com.datastax.driver.scala.types.TypeConverter
-import com.datastax.spark.connector.writer.{ConvertingPropertyExtractor, ObjectSizeEstimator, PropertyExtractor}
 
 /** A `RowWriter` suitable for saving objects mappable by a [[mapping.ColumnMapper ColumnMapper]].
   * Can save case class objects, java beans and tuples. */
