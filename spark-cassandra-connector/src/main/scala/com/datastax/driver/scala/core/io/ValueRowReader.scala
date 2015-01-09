@@ -12,10 +12,10 @@ class ValueRowReader[T: TypeConverter](columnRef: ColumnRef) extends RowReader[T
   /** Reads column values from low-level `Row` and turns them into higher level representation.
     * @param row row fetched from Cassandra
     * @param columnNames column names available in the `row` */
-  override def read(row: Row, columnNames: Array[String], protocolVersion: ProtocolVersion): T = {
+  override def read(row: Row, columnNames: Array[String])(implicit protocolVersion: ProtocolVersion): T = {
     columnRef match {
-      case ColumnIndex(idx) => converter.convert(AbstractRow.get(row, idx, protocolVersion))
-      case NamedColumnRef(_, selectedAs) => converter.convert(AbstractRow.get(row, selectedAs, protocolVersion))
+      case ColumnIndex(idx) => converter.convert(AbstractGettableData.get(row, idx))
+      case NamedColumnRef(_, selectedAs) => converter.convert(AbstractGettableData.get(row, selectedAs))
     }
   }
 

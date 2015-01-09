@@ -2,13 +2,13 @@ package com.datastax.driver.scala.core.io
 
 import java.io.IOException
 
-import com.google.common.util.concurrent.ListenableFuture
-
 import scala.collection._
-import com.datastax.driver.core.{ResultSet, BatchStatement, PreparedStatement, Session}
+import com.datastax.driver.core.BoundStatement
+import com.datastax.driver.core.{BatchStatement, PreparedStatement, Session}
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.conf.WriteConf
 import com.datastax.driver.scala.core.utils.{CountingIterator, Logging}
+import com.datastax.driver.scala.types.ColumnType
 
 /** Writes RDD data into given Cassandra table.
   * Individual column values are extracted from RDD objects using given [[RowWriter]]
@@ -26,7 +26,7 @@ class TableWriter[T] private[datastax] (
   val tableName = tableDef.tableName
   val columnNames = rowWriter.columnNames diff writeConf.optionPlaceholders
   val columns = columnNames.map(tableDef.columnByName)
-  val protocolVersion = connector.withClusterDo { _.getConfiguration.getProtocolOptions.getProtocolVersionEnum }
+  implicit val protocolVersion = connector.withClusterDo { _.getConfiguration.getProtocolOptions.getProtocolVersionEnum }
 
   val defaultTTL = writeConf.ttl match {
     case x: StaticWriteOption[Int] => Some(x.value)
@@ -94,54 +94,82 @@ class TableWriter[T] private[datastax] (
     }
   }
 
-  private def createBatch(data: Seq[T], stmt: PreparedStatement): BatchStatement = {
-    val batchStmt =
-      if (isCounterUpdate)
-        new BatchStatement(BatchStatement.Type.COUNTER)
-      else
-        new BatchStatement(BatchStatement.Type.UNLOGGED)
-    for (row <- data)
-      batchStmt.add(rowWriter.bind(row, stmt, protocolVersion))
-    batchStmt
-  }
+  /** Helper class introduced to avoid passing stmt and queryExecutor everywhere.
+    * Wraps the logic of extracting data from rows, converting to proper Java Driver types,
+    * grouping them in batches and finally sending into query executor. */
+  private class WriteHelper(stmt: PreparedStatement, queryExecutor: QueryExecutor) {
 
-  /** Writes `MeasuredInsertsCount` rows to Cassandra and returns the maximum size of the row */
-  private def measureMaxInsertSize(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor): Int = {
-    logDebug(s"Writing $MeasuredInsertsCount rows to $keyspaceName.$tableName and measuring maximum serialized row size...")
-    var maxInsertSize = 1
-    for (row <- data.take(MeasuredInsertsCount)) {
-      val insert = rowWriter.bind(row, stmt, protocolVersion)
-      queryExecutor.executeAsync(insert)
-      val size = rowWriter.estimateSizeInBytes(row)
-      if (size > maxInsertSize)
-        maxInsertSize = size
+    private val columnNames = rowWriter.columnNames.toIndexedSeq
+    private val columnTypes = columnNames.map(stmt.getVariables.getType)
+    private val converters = columnTypes.map(ColumnType.converterToCassandra)
+    private val buffer = Array.ofDim[Any](columnNames.size)
+
+    private def bind(row: T): BoundStatement = {
+      val boundStatement = stmt.bind()
+      rowWriter.readColumnValues(row, buffer)
+      for (i <- 0 until columnNames.size) {
+        val converter = converters(i)
+        val columnName = columnNames(i)
+        val columnValue = converter.convert(buffer(i))
+        val columnType = columnTypes(i)
+        val serializedValue =
+          if (columnValue != null) columnType.serialize(columnValue, protocolVersion)
+          else null
+        boundStatement.setBytesUnsafe(columnName, serializedValue)
+      }
+      boundStatement
     }
-    logDebug(s"Maximum serialized row size: " + maxInsertSize + " B")
-    maxInsertSize
-  }
 
-  /** Returns either configured batch size or, if not set, determines the optimal batch size by writing a
-    * small number of rows and estimating their size. */
-  private def optimumBatchSize(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor): Int = {
-    writeConf.batchSize match {
-      case RowsInBatch(size) =>
-        size
-      case BytesInBatch(size) =>
-        val maxInsertSize = measureMaxInsertSize(data, stmt, queryExecutor)
-        math.max(1, size / (maxInsertSize * 2))  // additional margin for data larger than usual
+    private def createBatch(data: Seq[T]): BatchStatement = {
+      val batchStmt =
+        if (isCounterUpdate)
+          new BatchStatement(BatchStatement.Type.COUNTER)
+        else
+          new BatchStatement(BatchStatement.Type.UNLOGGED)
+      for (row <- data)
+        batchStmt.add(bind(row))
+      batchStmt
     }
-  }
 
-  private def writeBatched(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor, batchSize: Int) {
-    for (batch <- data.grouped(batchSize)) {
-      val batchStmt = createBatch(batch, stmt)
-      batchStmt.setConsistencyLevel(writeConf.consistencyLevel)
-      queryExecutor.executeAsync(batchStmt)
+    /** Writes `MeasuredInsertsCount` rows to Cassandra and returns the maximum size of the row */
+    private def measureMaxInsertSize(data: Iterator[T]): Int = {
+      logDebug(s"Writing $MeasuredInsertsCount rows to $keyspaceName.$tableName and measuring maximum serialized row size...")
+      var maxInsertSize = 1
+      for (row <- data.take(MeasuredInsertsCount)) {
+        val insert = bind(row)
+        queryExecutor.executeAsync(insert)
+        val size = ObjectSizeEstimator.measureSerializedSize(buffer)
+        if (size > maxInsertSize)
+          maxInsertSize = size
+      }
+      logDebug(s"Maximum serialized row size: " + maxInsertSize + " B")
+      maxInsertSize
     }
-  }
 
-  private def writeUnbatched(data: Iterator[T], stmt: PreparedStatement, queryExecutor: QueryExecutor): Unit = {
-    for (row <- data) queryExecutor.executeAsync(rowWriter.bind(row, stmt, protocolVersion))
+    /** Returns either configured batch size or, if not set, determines the optimal batch size by writing a
+      * small number of rows and estimating their size. */
+    def optimumBatchSize(data: Iterator[T]): Int = {
+      writeConf.batchSize match {
+        case RowsInBatch(size) =>
+          size
+        case BytesInBatch(size) =>
+          val maxInsertSize = measureMaxInsertSize(data)
+          math.max(1, size / (maxInsertSize * 2))  // additional margin for data larger than usual
+      }
+    }
+
+    def writeBatched(data: Iterator[T], batchSize: Int) {
+      for (batch <- data.grouped(batchSize)) {
+        val batchStmt = createBatch(batch)
+        batchStmt.setConsistencyLevel(writeConf.consistencyLevel)
+        queryExecutor.executeAsync(batchStmt)
+      }
+    }
+
+    def writeUnbatched(data: Iterator[T]) {
+      for (row <- data)
+        queryExecutor.executeAsync(bind(row))
+    }
   }
 
   /** Main entry point */
@@ -152,12 +180,13 @@ class TableWriter[T] private[datastax] (
       val stmt = prepareStatement(session)
       stmt.setConsistencyLevel(writeConf.consistencyLevel)
       val queryExecutor = new QueryExecutor(session, writeConf.parallelismLevel)
-      val batchSize = optimumBatchSize(rowIterator, stmt, queryExecutor)
+      val writeHelper = new WriteHelper(stmt, queryExecutor)
+      val batchSize = writeHelper.optimumBatchSize(rowIterator)
 
       logDebug(s"Writing data partition to $keyspaceName.$tableName in batches of $batchSize rows each.")
       batchSize match {
-        case 1 => writeUnbatched(rowIterator, stmt, queryExecutor)
-        case _ => writeBatched(rowIterator, stmt, queryExecutor, batchSize)
+        case 1 => writeHelper.writeUnbatched(rowIterator)
+        case _ => writeHelper.writeBatched(rowIterator, batchSize)
       }
 
       queryExecutor.waitForCurrentlyExecutingTasks()

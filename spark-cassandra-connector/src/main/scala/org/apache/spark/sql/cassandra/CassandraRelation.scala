@@ -1,14 +1,15 @@
 package org.apache.spark.sql.cassandra
 
+import com.datastax.driver.scala.types.FieldDef
 import org.apache.spark.sql.catalyst.expressions.{Attribute, AttributeReference}
-import org.apache.spark.sql.catalyst.plans.logical.LeafNode
+import org.apache.spark.sql.catalyst.plans.logical.{Statistics, LeafNode}
 import org.apache.spark.sql.catalyst
 import com.datastax.driver.scala.core.{TableDef, ColumnDef}
 import com.datastax.driver
+import org.apache.spark.sql.catalyst.types.StructField
 
-private[cassandra] case class CassandraRelation
-  (tableDef: TableDef, alias: Option[String])(@transient cc: CassandraSQLContext)
-  extends LeafNode {
+private[cassandra] case class CassandraRelation(tableDef: TableDef, alias: Option[String])(
+  @transient cc: CassandraSQLContext) extends LeafNode {
 
   val keyspaceName          = tableDef.keyspaceName
   val regularColumns        = tableDef.regularColumns.toList.map(columnToAttribute)
@@ -33,6 +34,7 @@ private[cassandra] case class CassandraRelation
       BigInt(cc.conf.getLong(keyspaceName + "." + tableName + ".size.in.bytes", cc.defaultSizeInBytes))
     }
   )
+
   def tableName = tableDef.tableName
 }
 
@@ -63,15 +65,29 @@ object ColumnDataType {
   
     // TODO: This mapping is useless, it is here only to avoid lookup failure if a table contains a UDT column. 
     // It is not possible to read UDT columns in SparkSQL now. 
-    driver.scala.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
+    connector.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
   )
 
-  def catalystDataType(cassandraType: com.datastax.driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
+ /* def catalystDataType(cassandraType: com.datastax.driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
     cassandraType match {
       case com.datastax.driver.scala.types.SetType(et)      => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
       case com.datastax.driver.scala.types.ListType(et)     => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
       case com.datastax.driver.scala.types.MapType(kt, vt)  => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
       case _                                => primitiveTypeMap(cassandraType)
+ */
+
+  def catalystDataType(cassandraType: driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
+
+    def catalystStructField(field: FieldDef): StructField =
+      StructField(field.fieldName, catalystDataType(field.fieldType, nullable = true), nullable = true)
+
+    cassandraType match {
+      case driver.scala.types.SetType(et)             => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
+      case driver.scala.types.ListType(et)            => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
+      case driver.scala.types.MapType(kt, vt)         => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
+      case driver.scala.types.UserDefinedType(fields) => catalyst.types.StructType(fields.map(catalystStructField))
+      case _                                       => primitiveTypeMap(cassandraType)
+
     }
   }
 }

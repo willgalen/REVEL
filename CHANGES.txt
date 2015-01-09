@@ -1,9 +1,12 @@
 1.2.0 (unreleased)
  * Added support for TTL and timestamp in the writer (#153)
+ * Added support for UDT column types (SPARKC-1)
+ * Upgraded Spark to version 1.2.0 (SPARKC-15)
  * Upgraded Spark to the latest release version, 1.1.1 (#461)
+ * For 1.2.0 release, table name with dot is not supported for Spark SQL,
+   it will be fixed in the next release
 
-1.1.1 (unreleased)
- * Merged bug fix for #463 from b1.0
+1.1.1
  * Fixed NoSuchElementException in SparkSQL predicate pushdown code (SPARKC-7, #454)
 
 1.1.0
@@ -95,7 +98,7 @@
      Cluster, local or remote, to get started.
 
 ********************************************************************************
-1.0.5 (unreleased)
+1.0.5
  * Fixed setting output consistency level which was being set on prepared
    statements instead of being set on batches (#463)
 

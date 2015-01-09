@@ -4,8 +4,20 @@ import java.io.IOException
 
 import scala.language.existentials
 
+<<<<<<< HEAD
 import scala.reflect.ClassTag
 import scala.collection.JavaConversions._
+=======
+import com.datastax.driver.core.{ProtocolVersion, Session, Statement}
+import com.datastax.spark.connector.{SomeColumns, AllColumns, ColumnSelector}
+import com.datastax.spark.connector.cql._
+import com.datastax.spark.connector.rdd.partitioner.{CassandraRDDPartitioner, CassandraPartition, CqlTokenRange}
+import com.datastax.spark.connector.rdd.partitioner.dht.TokenFactory
+import com.datastax.spark.connector.rdd.reader._
+import com.datastax.spark.connector.types.{ColumnType, TypeConverter}
+import com.datastax.spark.connector.util.{Logging, CountingIterator}
+
+>>>>>>> master
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{Partition, SparkContext, TaskContext}
 import com.datastax.driver.scala.core.io._
@@ -341,19 +353,21 @@ class CassandraRDD[R] private[connector] (
     (s"SELECT $columns FROM $quotedKeyspaceName.$quotedTableName WHERE $filter", range.values ++ where.values)
   }
 
+  def protocolVersion(session: Session): ProtocolVersion = {
+    session.getCluster.getConfiguration.getProtocolOptions.getProtocolVersionEnum
+  }
+
   private def createStatement(session: Session, cql: String, values: Any*): Statement = {
     try {
+      implicit val pv = protocolVersion(session)
       val stmt = session.prepare(cql)
       stmt.setConsistencyLevel(consistencyLevel)
       val converters = stmt.getVariables
-        .view
-        .map(_.getType)
-        .map(ColumnType.fromDriverType)
-        .map(_.converterToCassandra)
+        .map(v => ColumnType.converterToCassandra(v.getType))
         .toArray
       val convertedValues =
         for ((value, converter) <- values zip converters)
-        yield converter.convert(value).asInstanceOf[AnyRef]
+        yield converter.convert(value)
       val bstm = stmt.bind(convertedValues: _*)
       bstm.setFetchSize(fetchSize)
       bstm
@@ -370,10 +384,10 @@ class CassandraRDD[R] private[connector] (
     val stmt = createStatement(session, cql, values: _*)
     val columnNamesArray = selectedColumnNames.map(_.selectedAs).toArray
     try {
+      implicit val pv = protocolVersion(session)
       val rs = session.execute(stmt)
-      val protocolVersion = session.getCluster.getConfiguration.getProtocolOptions.getProtocolVersionEnum
       val iterator = new PrefetchingResultSetIterator(rs, fetchSize)
-      val result = iterator.map(rowTransformer.read(_, columnNamesArray, protocolVersion))
+      val result = iterator.map(rowTransformer.read(_, columnNamesArray))
       logDebug(s"Row iterator for range ${range.cql} obtained successfully.")
       result
     } catch {

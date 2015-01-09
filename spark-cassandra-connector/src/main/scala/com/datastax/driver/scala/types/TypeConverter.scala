@@ -3,6 +3,8 @@ package com.datastax.driver.scala.types
 import java.net.InetAddress
 import java.nio.ByteBuffer
 import java.util.{Calendar, GregorianCalendar, UUID, Date}
+import com.datastax.driver.scala.types.UDTValue
+import UDTValue.UDTValueConverter
 
 import scala.collection.JavaConversions._
 import scala.collection.immutable.{TreeMap, TreeSet}
@@ -10,8 +12,6 @@ import scala.reflect.runtime.universe._
 
 import org.apache.cassandra.utils.ByteBufferUtil
 import org.joda.time.DateTime
-
-import com.datastax.driver.core.UDTValue
 
 class TypeConversionException(val message: String, cause: Exception = null) extends Exception(message, cause)
 
@@ -402,16 +402,6 @@ object TypeConverter {
     def convertPF = {
       case x: InetAddress => x
       case x: String => InetAddress.getByName(x)
-    }
-  }
-
-  val UDTValueTypeTag = implicitly[TypeTag[UDTValue]]
-
-  // TODO: This is a stub. Currently doesn't do any conversion at all.
-  implicit object UDTValueConverter extends NullableTypeConverter[UDTValue] {
-    def targetTypeTag = UDTValueTypeTag
-    def convertPF = {
-      case x: UDTValue => x
     }
   }
 

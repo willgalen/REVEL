@@ -9,7 +9,7 @@ import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.io._
 import com.datastax.driver.scala.mapping.DefaultColumnMapper
 import com.datastax.spark.connector._
-import com.datastax.driver.scala.types.TypeConverter
+import com.datastax.driver.scala.types.{UDTValue, TypeConverter}
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.testkit._
 import com.datastax.driver.scala.testkit._
@@ -35,6 +35,10 @@ class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfte
     session.execute("CREATE TABLE IF NOT EXISTS write_test.counters2 (pkey INT PRIMARY KEY, c counter)")
     session.execute("CREATE TABLE IF NOT EXISTS write_test.\"camelCase\" (\"primaryKey\" INT PRIMARY KEY, \"textValue\" text)")
     session.execute("CREATE TABLE IF NOT EXISTS write_test.single_column (pk INT PRIMARY KEY)")
+
+    session.execute("CREATE TYPE write_test.address (street text, city text, zip int)")
+    session.execute("CREATE TABLE IF NOT EXISTS write_test.udts(key INT PRIMARY KEY, name text, addr frozen<address>)")
+
   }
 
   private def verifyKeyValueTable(tableName: String) {
@@ -124,7 +128,7 @@ class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfte
 
   it should "write null values" in {
     val key = 1.asInstanceOf[AnyRef]
-    val row = new CassandraRow(IndexedSeq(key, null, null), IndexedSeq("key", "text_value", "int_value"))
+    val row = new CassandraRow(IndexedSeq("key", "text_value", "int_value"), IndexedSeq(key, null, null))
 
     sc.parallelize(Seq(row)).saveToCassandra("write_test", "nulls")
     conn.withSessionDo { session =>
@@ -223,7 +227,7 @@ class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfte
     sc.cassandraTable("write_test", "counters2").count should be(rowCount)
   }
 
-  it should "write values of user-defined types" in {
+  it should "write values of user-defined classes" in {
     TypeConverter.registerConverter(new TypeConverter[String] {
       def targetTypeTag = scala.reflect.runtime.universe.typeTag[String]
       def convertPF = { case CustomerId(id) => id }
@@ -239,6 +243,24 @@ class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfte
         row.getString(2) shouldEqual "foo"
     }
   }
+
+  it should "write values of user-defined-types in Cassandra" in {
+    val address = UDTValue.fromMap(Map("city" -> "Warsaw", "zip" -> 10000, "street" -> "Marszałkowska"))
+    val col = Seq((1, "Joe", address))
+    sc.parallelize(col).saveToCassandra("write_test", "udts", SomeColumns("key", "name", "addr"))
+
+    conn.withSessionDo { session =>
+      val result = session.execute("SELECT key, name, addr FROM write_test.udts").all()
+      result should have size 1
+      for (row <- result) {
+        row.getInt(0) shouldEqual 1
+        row.getString(1) shouldEqual "Joe"
+        row.getUDTValue(2).getString("city") shouldEqual "Warsaw"
+        row.getUDTValue(2).getInt("zip") shouldEqual 10000
+      }
+    }
+  }
+
 
   it should "write to single-column tables" in {
     val col = Seq(1, 2, 3, 4, 5).map(Tuple1.apply)
