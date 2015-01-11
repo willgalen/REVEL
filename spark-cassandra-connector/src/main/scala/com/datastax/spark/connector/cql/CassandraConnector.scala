@@ -4,7 +4,7 @@ import java.net.InetAddress
 
 import org.apache.spark.SparkConf
 import com.datastax.driver.scala.core.CassandraCluster
-import com.datastax.driver.scala.core.conf.{CassandraSettings, ClusterConfig, NoAuthConf, AuthConf}
+import com.datastax.driver.scala.core.conf._
 
 /**
  * A [[com.datastax.driver.scala.core.CassandraCluster]] that adds an optional Thrift usage layer.
@@ -31,6 +31,7 @@ class CassandraConnector(config: ClusterConfig) extends CassandraCluster(config)
 
 object CassandraConnector {
   import com.datastax.spark.connector._
+  import Cluster._
 
   def apply(config: ClusterConfig) = {
     new CassandraConnector(config)
@@ -40,8 +41,7 @@ object CassandraConnector {
     apply(conf.clusterConfig)
 
   /** Returns a CassandraCluster created from defaults with the `host` and `authConf`. */
-  def apply(host: InetAddress, auth: AuthConf = NoAuthConf): CassandraConnector = {
-    val config = ClusterConfig(CassandraSettings(useDefaults = true))
-    apply(config.copy(hosts = Set(host), authConf = auth))
+  def apply(host: InetAddress, auth: AuthConf = NoAuthConf, nativePort: Int = DefaultNativePort, rpcPort: Int = DefaultRpcPort): CassandraConnector = {
+    apply(ClusterConfig(hosts = Set(host), nativePort = nativePort, rpcPort = rpcPort, authConf = auth))
   }
 }

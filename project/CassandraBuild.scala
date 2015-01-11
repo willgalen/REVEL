@@ -22,25 +22,27 @@ object CassandraBuild extends Build {
   import DriverSettings._
 
   lazy val root = (project in file("."))
-    .settings(name := "root").settings(parentSettings:_*).aggregate(driver, akka, embedded)
+    .settings(name := "root").settings(parentSettings:_*).aggregate(driver, akka, embeddedCassandra)
 
   lazy val driver = Project(
     id = "scala-driver",
-    base = path("driver-core"),
-    settings = moduleSettings(DriverDependencies.driver)
-  ) dependsOn(embedded % "test->test;it->it,test;") configs IntegrationTest
+    base = path("scala-driver"),
+    settings = moduleSettings(DriverDependencies.driver),
+    dependencies = Seq(CassandraBuild.embeddedCassandra % "test->test;it->it,test;")
+  ) configs (IntegrationTest)
 
   lazy val akka = Project(
-    id = "cassandra-akka",
-    base = path("cassandra-akka"),
-    settings = moduleSettings(DriverDependencies.akka)
-  ) dependsOn(driver, embedded % "test->test;it->it,test;") configs IntegrationTest
+    id = "akka-cassandra",
+    base = path("akka-cassandra"),
+    settings = moduleSettings(DriverDependencies.akka),
+    dependencies = Seq(driver, embeddedCassandra % "test->test;it->it,test;")
+  ) configs (IntegrationTest)
 
-  lazy val embedded = Project(
-    id = "cassandra-embedded",
-    base = path("cassandra-embedded"),
-    settings = defaultSettings ++ Seq(libraryDependencies ++= DriverDependencies.embedded)
-  ) configs IntegrationTest
+  lazy val embeddedCassandra = Project(
+    id = "embedded-cassandra",
+    base = path("embedded-cassandra"),
+    settings = moduleSettings(DriverDependencies.embedded)
+  ) configs (IntegrationTest)
 
 
   // while in the connector
@@ -113,14 +115,14 @@ object DriverDependencies {
 
   import Compile._
 
-  val driver = Seq(cassandraDriver, cassandraClient, commonsConfig,
+  val testkit = Seq(Test.scalatest, Test.scalaCompiler, Test.scalactic, Test.mockito)
+
+  val driver = testkit ++ Seq(cassandraDriver, cassandraClient, commonsConfig,
     commonsLang3, config, jodaC, jodaT, paranamer, reflect, slf4jApi)
 
   val embedded = driver ++ Seq(Embedded.cassandra)
 
-  val testkit = Seq(Test.scalatest, Test.scalaCompiler, Test.scalactic, Test.mockito)
-
-  val akka = {
+  val akka = testkit ++ {
     import CassandraAkka._
     Seq(akkaActor, akkaRemote, akkaSlf4j, akkaCluster, akkaStream, akkaHttpCore, slf4jApi, Test.akkaTestKit)
   }
@@ -141,8 +143,8 @@ object DriverSettings extends Build {
 
   lazy val buildSettings = Seq(
     name := "Apache Cassandra Community Scala Driver",
-    normalizedName := "cassandra-scala-driver",
-    description := "A driver that exposes Cassandra tables and executes CQL queries for scala applications.",
+    normalizedName := "scala-driver",
+    description := "A Scala community driver that exposes Cassandra tables and executes CQL queries for scala applications.",
     organization := "com.datastax.driver.scala",
     organizationHomepage := Some(url("http://www.datastax.com/")),
     version in ThisBuild := "1.0.0-SNAPSHOT",
@@ -175,13 +177,25 @@ object DriverSettings extends Build {
   )
 
   val testOptionSettings = Seq(
-    Tests.Argument(TestFrameworks.ScalaTest, "-oDF"),
-    Tests.Argument(TestFrameworks.JUnit, "-oDF", "-v", "-a")
+    Tests.Argument(TestFrameworks.ScalaTest, "-oDF")
   )
 
   val tests = inConfig(Test)(Defaults.testTasks) ++ inConfig(IntegrationTest)(Defaults.itSettings)
 
-  lazy val testSettings = tests ++ graphSettings ++ Seq(
+  lazy val testArtifacts = Seq(
+    artifactName in (Test,packageBin) := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
+      baseDirectory.value.name + "-test_" + sv.binary + "-" + module.revision + "." + artifact.extension
+    },
+    artifactName in (IntegrationTest,packageBin) := { (sv: ScalaVersion, module: ModuleID, artifact: Artifact) =>
+      baseDirectory.value.name + "-it_" + sv.binary + "-" + module.revision + "." + artifact.extension
+    },
+    publishArtifact in (Test,packageBin) := true,
+    publishArtifact in (IntegrationTest,packageBin) := true,
+    publish in (Test,packageBin) := {},
+    publish in (IntegrationTest,packageBin) := {}
+  )
+
+  lazy val testSettings = tests ++ testArtifacts ++ Seq(
     javaOptions in run ++= Seq("-Djava.library.path=./sigar","-Xms128m", "-Xmx1024m", "-XX:+UseConcMarkSweepGC"),
     parallelExecution in Test := false,
     parallelExecution in IntegrationTest := false,

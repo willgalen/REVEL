@@ -2,11 +2,10 @@ package com.datastax.spark.connector.sql
 
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded.SparkTemplate
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
+import com.datastax.spark.connector.testkit.{AbstractFlatSpec, CassandraSpec}
 import org.apache.spark.sql.cassandra.CassandraSQLContext
-import org.scalatest.{FlatSpec, Matchers}
 
-class CassandraSQLSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {
+class CassandraSQLSpec extends AbstractFlatSpec with CassandraSpec with SparkTemplate {
   useCassandraConfig("cassandra-default.yaml.template")
   val conn = CassandraConnector(cassandraHost)
   val cc = new CassandraSQLContext(sc)

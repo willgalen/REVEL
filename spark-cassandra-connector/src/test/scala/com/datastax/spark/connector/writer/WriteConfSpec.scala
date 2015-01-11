@@ -3,11 +3,11 @@ package com.datastax.spark.connector.writer
 import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.driver.scala.core.conf.Write
 import com.datastax.driver.scala.core.{BytesInBatch, RowsInBatch}
-import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
+import com.datastax.spark.connector.testkit.AbstractFlatSpec
+import org.apache.spark.SparkConf 
 import com.datastax.spark.connector._
 
-class WriteConfSpec extends FlatSpec with Matchers {
+class WriteConfSpec extends AbstractFlatSpec {
   import Write._
 
   "WriteConf" should "be configured with proper defaults" in {

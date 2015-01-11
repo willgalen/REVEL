@@ -1,10 +1,9 @@
 package com.datastax.spark.connector.cql
 
 import com.datastax.driver.scala.core.conf.PasswordAuthConf
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
-import org.scalatest.{FlatSpec, Matchers}
+import com.datastax.spark.connector.testkit.{AbstractFlatSpec, CassandraSpec}
 
-class CassandraAuthenticatedConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra {
+class CassandraAuthenticatedConnectorSpec extends AbstractFlatSpec with CassandraSpec {
 
   useCassandraConfig("cassandra-password-auth.yaml.template")
 

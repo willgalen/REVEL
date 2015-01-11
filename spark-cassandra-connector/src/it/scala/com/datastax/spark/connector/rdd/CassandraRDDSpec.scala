@@ -5,14 +5,13 @@ import java.util.Date
 
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.mapping.DefaultColumnMapper
-import com.datastax.driver.scala.testkit._
 import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
-import org.scalatest.{FlatSpec, Matchers}
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
 import com.datastax.driver.scala.types.TypeConverter
 import com.datastax.spark.connector.embedded._
+import com.datastax.spark.connector.testkit._
+
 import scala.reflect.runtime.universe.typeTag
 
 class MutableKeyValue(var key: Int, var group: Long) extends Serializable {
@@ -23,7 +22,7 @@ class MutableKeyValueWithConversion(var key: String, var group: Int) extends Ser
   var value: Long = 0L
 }
 
-class CassandraRDDSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {
+class CassandraRDDSpec extends AbstractFlatSpec with CassandraSpec with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
   val conn = CassandraConnector(cassandraHost)

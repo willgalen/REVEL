@@ -2,8 +2,10 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
-import com.datastax.driver.scala.core.{ColumnName, Connector$}
+import scala.collection.JavaConversions._
+import com.datastax.driver.scala.core.ColumnName
 import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.japi.CassandraJavaUtil
 import com.datastax.spark.connector.testkit._
@@ -11,15 +13,13 @@ import com.datastax.driver.scala.types.TypeConverter
 import org.apache.commons.lang3.tuple
 import org.scalatest._
 
-import scala.collection.JavaConversions._
-import CassandraJavaUtil._
-
 class CassandraJavaRDDSpec extends FlatSpec with Matchers with BeforeAndAfter with BeforeAndAfterAll
-with ShouldMatchers with SharedEmbeddedCassandra with SparkTemplate {
+  with ShouldMatchers with CassandraSpec with SparkTemplate {
+  import CassandraJavaUtil._
 
   useCassandraConfig("cassandra-default.yaml.template")
 
-  val conn = Connector(Set(EmbeddedCassandra.cassandraHost))
+  val conn = CassandraConnector(cassandraHost)
 
   conn.withSessionDo { session =>
     session.execute("DROP KEYSPACE IF EXISTS java_api_test")
@@ -270,7 +270,7 @@ with ShouldMatchers with SharedEmbeddedCassandra with SparkTemplate {
     javaFunctions(sc).cassandraTable("java_api_test", "test_table").collect()
 
     // doesn't work with invalid connector
-    val invalidConnector = Connector(Set(EmbeddedCassandra.cassandraHost), nativePort = 9999, rpcPort = 9998)
+    val invalidConnector = CassandraConnector(cassandraHost, nativePort = 9999, rpcPort = 9998)
     intercept[IOException] {
       javaFunctions(sc).cassandraTable("java_api_test", "test_table").withConnector(invalidConnector).collect()
     }

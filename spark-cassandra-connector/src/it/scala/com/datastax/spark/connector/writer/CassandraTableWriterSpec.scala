@@ -3,7 +3,6 @@ package com.datastax.spark.connector.writer
 import java.io.IOException
 
 import scala.collection.JavaConversions._
-import org.scalatest.{BeforeAndAfter, FlatSpec, Matchers}
 import com.datastax.driver.scala.core.conf.WriteConf
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.io._
@@ -11,10 +10,9 @@ import com.datastax.driver.scala.mapping.DefaultColumnMapper
 import com.datastax.driver.scala.types.{UDTValue, TypeConverter}
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.testkit._
-import com.datastax.driver.scala.testkit._
 import com.datastax.spark.connector.cql.CassandraConnector
 
-class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfter with SharedEmbeddedCassandra with SparkTemplate {
+class CassandraTableWriterSpec extends AbstractFlatSpec with CassandraSpec with SparkTemplate {
   import com.datastax.spark.connector._
 
   useCassandraConfig("cassandra-default.yaml.template")

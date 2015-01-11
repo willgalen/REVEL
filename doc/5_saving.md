@@ -65,7 +65,7 @@ CREATE TABLE test.companies (name text PRIMARY KEY, address FROZEN<address>);
 To create a new row in the `test.companies` table:
 ```scala
 case class Company(name: String, address: UDTValue)
-val address = UDTValue.fromMap("city" -> "Santa Clara", "street" -> "Freedom Circle", number -> 3975)
+val address = UDTValue("city" -> "Santa Clara", "street" -> "Freedom Circle", number -> 3975)
 val company = Company("DataStax", address)
 sc.parallelize(Seq(company)).saveToCassandra("test", "companies")
 ```

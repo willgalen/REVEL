@@ -30,7 +30,7 @@ object CassandraSparkBuild extends Build {
   lazy val jconnector = AssemblyProject("spark-cassandra-connector-java",
     Seq(connector % "compile;runtime->runtime;test->test;it->it,test;provided->provided"))
 
-  lazy val embedded = UtilityProject("spark-cassandra-connector-embedded", Seq(CassandraBuild.embedded), Dependencies.embedded)
+  lazy val embedded = UtilityProject("spark-cassandra-connector-embedded", Seq(CassandraBuild.embeddedCassandra), Dependencies.embedded)
 
   lazy val demos = RootProject("demos", file("spark-cassandra-connector-demos"), Seq(simpleDemos, kafkaStreaming, twitterStreaming))
 

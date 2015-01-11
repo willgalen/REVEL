@@ -1,12 +1,12 @@
 package com.datastax.spark.connector.rdd
 
+import com.datastax.spark.connector.testkit.AbstractFlatSpec
 import org.apache.spark.SparkConf
-import org.scalatest.{Matchers, FlatSpec}
 import com.datastax.driver.core.ConsistencyLevel
 import com.datastax.driver.scala.core.conf.Read
 import com.datastax.spark.connector._
 
-class ReadConfSpec extends FlatSpec with Matchers {
+class ReadConfSpec extends AbstractFlatSpec {
   import Read._
 
   "ReadConf" should "be configured with proper defaults" in {

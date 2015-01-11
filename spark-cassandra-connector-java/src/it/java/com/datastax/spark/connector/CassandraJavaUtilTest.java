@@ -1,6 +1,6 @@
 package com.datastax.spark.connector;
 
-import com.datastax.driver.scala.core.utils.JavaApiHelper;
+import com.datastax.spark.connector.util.JavaApiHelper;
 import com.datastax.spark.connector.japi.DStreamJavaFunctions;
 import com.datastax.spark.connector.japi.RDDJavaFunctions;
 import com.datastax.spark.connector.japi.SparkContextJavaFunctions;

@@ -1,12 +1,11 @@
 package com.datastax.spark.connector.cql
 
-import com.datastax.driver.scala.core.conf.Connection
+import com.datastax.driver.scala.core.conf.Cluster
 import com.datastax.driver.scala.embedded._
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
+import com.datastax.spark.connector.testkit.{AbstractFlatSpec, CassandraSpec}
 import org.apache.spark.SparkConf
-import org.scalatest.{FlatSpec, Matchers}
 
-class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra {
+class CassandraConnectorSpec extends AbstractFlatSpec with CassandraSpec {
 
   useCassandraConfig("cassandra-default.yaml.template")
 
@@ -15,7 +14,7 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
   it should "be configurable from SparkConf" in {
     val host = EmbeddedCassandra.cassandraHost.getHostAddress
     val conf = new SparkConf(loadDefaults = true)
-      .set("spark." + Connection.HostProperty, host)
+      .set("spark." + Cluster.HostProperty, host)
 
     // would throw exception if connection unsuccessful
     CassandraConnector(conf).withSessionDo { session => }
@@ -26,7 +25,7 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
     val invalidHost = "192.168.254.254"
     // let's connect to two addresses, of which the first one is deliberately invalid
     val conf = new SparkConf(loadDefaults = true)
-      .set("spark." + Connection.HostProperty, invalidHost + "," + goodHost)
+      .set("spark." + Cluster.HostProperty, invalidHost + "," + goodHost)
 
     // would throw exception if connection unsuccessful
     CassandraConnector(conf).withSessionDo { session => }
@@ -34,7 +33,7 @@ class CassandraConnectorSpec extends FlatSpec with Matchers with SharedEmbeddedC
 
   it should "connect to Cassandra with thrift" in {
     val conf = new SparkConf(loadDefaults = true)
-      .set("spark." + Connection.HostProperty, EmbeddedCassandra.cassandraHost.getHostAddress)
+      .set("spark." + Cluster.HostProperty, EmbeddedCassandra.cassandraHost.getHostAddress)
     CassandraConnector(conf).withCassandraClientDo { client =>
       assert(client.describe_cluster_name() === "Test Cluster")
     }
