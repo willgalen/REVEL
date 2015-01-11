@@ -1,7 +1,7 @@
 package com.datastax.spark.connector.cql
 
 import com.datastax.driver.scala.core.conf.Connection
-import com.datastax.spark.connector.embedded.EmbeddedCassandra
+import com.datastax.driver.scala.embedded._
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.apache.spark.SparkConf
 import org.scalatest.{FlatSpec, Matchers}

@@ -8,7 +8,6 @@ import com.datastax.driver.scala.core.conf.WriteConf
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.core.io._
 import com.datastax.driver.scala.mapping.DefaultColumnMapper
-import com.datastax.spark.connector._
 import com.datastax.driver.scala.types.{UDTValue, TypeConverter}
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.testkit._
@@ -16,6 +15,7 @@ import com.datastax.driver.scala.testkit._
 import com.datastax.spark.connector.cql.CassandraConnector
 
 class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfter with SharedEmbeddedCassandra with SparkTemplate {
+  import com.datastax.spark.connector._
 
   useCassandraConfig("cassandra-default.yaml.template")
   val conn = CassandraConnector(conf)
@@ -245,7 +245,7 @@ class CassandraTableWriterSpec extends FlatSpec with Matchers with BeforeAndAfte
   }
 
   it should "write values of user-defined-types in Cassandra" in {
-    val address = UDTValue.fromMap(Map("city" -> "Warsaw", "zip" -> 10000, "street" -> "Marszałkowska"))
+    val address = UDTValue(Map("city" -> "Warsaw", "zip" -> 10000, "street" -> "Marszałkowska"))
     val col = Seq((1, "Joe", address))
     sc.parallelize(col).saveToCassandra("write_test", "udts", SomeColumns("key", "name", "addr"))
 

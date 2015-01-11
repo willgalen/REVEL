@@ -20,16 +20,17 @@ import sbt.Keys._
 
 object CassandraSparkBuild extends Build {
   import Settings._
+  import ProjectTemplates._
 
   lazy val root = RootProject("root", file("."), Seq(connector, jconnector, embedded, demos))
 
-  lazy val connector = AssemblyProject("spark-cassandra-connector", Dependencies.connector,
-    Seq(embedded % "test->test;it->it,test;"))
+  lazy val connector = AssemblyProject(
+    "spark-cassandra-connector", Seq(CassandraBuild.driver, embedded % "test->test;it->it,test;"))
 
-  lazy val jconnector = AssemblyProject("spark-cassandra-connector-java", Dependencies.connector,
+  lazy val jconnector = AssemblyProject("spark-cassandra-connector-java",
     Seq(connector % "compile;runtime->runtime;test->test;it->it,test;provided->provided"))
 
-  lazy val embedded = UtilityProject("spark-cassandra-connector-embedded", Dependencies.embedded)
+  lazy val embedded = UtilityProject("spark-cassandra-connector-embedded", Seq(CassandraBuild.embedded), Dependencies.embedded)
 
   lazy val demos = RootProject("demos", file("spark-cassandra-connector-demos"), Seq(simpleDemos, kafkaStreaming, twitterStreaming))
 
@@ -38,22 +39,6 @@ object CassandraSparkBuild extends Build {
   lazy val kafkaStreaming = DemoProject("kafka-streaming", Dependencies.kafka, Seq(connector, embedded)).settings(sbtAssemblySettings:_*)
 
   lazy val twitterStreaming = DemoProject("twitter-streaming", Dependencies.twitter, Seq(connector))
-
-  /* Project Templates */
-  def AssemblyProject(name: String, modules: Seq[ModuleID], cpd: Seq[ClasspathDep[ProjectReference]] = Seq.empty): Project =
-    Project(name, file(name), settings = assembledSettings ++ Seq(libraryDependencies ++= modules),
-      dependencies = cpd) configs (IntegrationTest, ClusterIntegrationTest)
-
-  def UtilityProject(name: String, modules: Seq[ModuleID]): Project =
-    Project(name, file(name),
-      settings = defaultSettings ++ Seq(libraryDependencies ++= modules)) configs (IntegrationTest, ClusterIntegrationTest)
-
-  def DemoProject(name: String, modules: Seq[ModuleID], cpd: Seq[ClasspathDep[ProjectReference]]): Project =
-    Project(id = name, base = file(s"spark-cassandra-connector-demos/$name"),
-      settings = demoSettings ++ Seq(libraryDependencies ++= modules), dependencies = cpd)
-
-  def RootProject(name: String, dir: sbt.File, contains: Seq[ProjectReference]): Project =
-    Project(id = name, base = dir, settings = parentSettings, aggregate = contains)
 
 }
 
@@ -65,6 +50,8 @@ object Dependencies {
     val akkaActor           = "com.typesafe.akka"       %% "akka-actor"            % Akka           % "provided"                 // ApacheV2
     val akkaRemote          = "com.typesafe.akka"       %% "akka-remote"           % Akka           % "provided"                 // ApacheV2
     val akkaSlf4j           = "com.typesafe.akka"       %% "akka-slf4j"            % Akka           % "provided"                 // ApacheV2
+    val akkaStream        = "com.typesafe.akka"   %% "akka-stream-experimental"          % "0.11"
+    val akkaHttpCore      = "com.typesafe.akka"   %% "akka-http-core-experimental"       % "0.11"
     val cassandraThrift     = "org.apache.cassandra"    % "cassandra-thrift"       % Cassandra        exclude("com.google.guava", "guava") // ApacheV2
     val cassandraClient     = "org.apache.cassandra"    % "cassandra-clientutil"   % Cassandra        exclude("com.google.guava", "guava") // ApacheV2
     val cassandraDriver     = "com.datastax.cassandra"  % "cassandra-driver-core"  % CassandraDriver  exclude("com.google.guava", "guava") // ApacheV2
@@ -129,14 +116,8 @@ object Dependencies {
 
   val spark = Seq(sparkCore, sparkStreaming, sparkSql, sparkCatalyst, sparkHive)
 
-  val driver = Seq(
-    "com.typesafe.akka" %% "akka-cluster" % Akka % "provided",
-    /*"com.typesafe.akka" % "akka-http-experimental_2.10" % "1.0-M2",
-    "com.typesafe.akka" % "akka-http-core-experimental_2.10" % "1.0-M2",*/
-    "com.typesafe.akka" % "akka-stream-experimental_2.10" % "1.0-M2"
-  )
   val connector = testKit ++ metrics ++ logging ++ akka ++ cassandra ++ spark.map(_ % "provided") ++ Seq(
-    commonsLang3, config, guava, jodaC, jodaT, lzf, reflect) ++ driver
+    commonsLang3, config, guava, jodaC, jodaT, lzf, reflect)
 
   val embedded = logging ++ spark ++ cassandra ++ Seq(
     Embedded.cassandraServer, Embedded.jopt, Embedded.kafka, Embedded.sparkRepl)

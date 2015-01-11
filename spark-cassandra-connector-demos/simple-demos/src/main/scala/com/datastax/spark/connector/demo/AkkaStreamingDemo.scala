@@ -9,7 +9,7 @@ import org.apache.spark.streaming.{Milliseconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext, SparkEnv}
 import com.datastax.spark.connector.streaming.TypedStreamingActor
 import com.datastax.spark.connector.embedded.Event._
-import com.datastax.spark.connector.embedded.Assertions
+import com.datastax.driver.scala.embedded.Assertions
 
 /**
  * This demo can run against a single node, local or remote.

@@ -3,22 +3,22 @@ package com.datastax.spark.connector.cql
 import java.net.InetAddress
 
 import org.apache.spark.SparkConf
-import com.datastax.driver.scala.core.Connector 
-import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.driver.scala.core.CassandraCluster
+import com.datastax.driver.scala.core.conf.{CassandraSettings, ClusterConfig, NoAuthConf, AuthConf}
 
 /**
- * A [[com.datastax.driver.scala.core.Connector]] that adds an optional Thrift usage layer.
+ * A [[com.datastax.driver.scala.core.CassandraCluster]] that adds an optional Thrift usage layer.
  * Thrift usage is going away.
  */
-class CassandraConnector(conf: CassandraConnectorConf) extends Connector(conf) {
+class CassandraConnector(config: ClusterConfig) extends CassandraCluster(config) {
 
   def createThriftClient(): CassandraClientProxy =
     createThriftClient(closestLiveHost.getAddress)
 
   /** Opens a Thrift client to the given host. Don't use it unless you really know what you are doing. */
   def createThriftClient(host: InetAddress): CassandraClientProxy = {
-    logDebug(s"Attempting to open thrift connection to Cassandra at ${host.getHostAddress}:${conf.rpcPort}")
-    CassandraClientProxy.wrap(conf, host)
+    logDebug(s"Attempting to open thrift connection to Cassandra at ${host.getHostAddress}:${config.rpcPort}")
+    CassandraClientProxy.wrap(config, host)
   }
 
   def withCassandraClientDo[T](host: InetAddress)(code: CassandraClientProxy => T): T =
@@ -32,10 +32,16 @@ class CassandraConnector(conf: CassandraConnectorConf) extends Connector(conf) {
 object CassandraConnector {
   import com.datastax.spark.connector._
 
-  def apply(conf: CassandraConnectorConf) =
-    new CassandraConnector(conf)
+  def apply(config: ClusterConfig) = {
+    new CassandraConnector(config)
+  }
 
   def apply(conf: SparkConf): CassandraConnector =
-    apply(conf.connectorConf)
+    apply(conf.clusterConfig)
 
+  /** Returns a CassandraCluster created from defaults with the `host` and `authConf`. */
+  def apply(host: InetAddress, auth: AuthConf = NoAuthConf): CassandraConnector = {
+    val config = ClusterConfig(CassandraSettings(useDefaults = true))
+    apply(config.copy(hosts = Set(host), authConf = auth))
+  }
 }

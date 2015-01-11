@@ -98,7 +98,9 @@ class SparkContextFunctions(@transient val sc: SparkContext) extends Configurati
   *   val conf = new SparkConf()
   *
   *   val settings: CassandraSettings = conf.settings
-  *   CassandraConnector(conf.connectorConf)
+  *
+  *   CassandraConnector(conf) // one way to create it
+  *   CassandraConnector(conf.clusterConfig) // another way
   *
   *   val rdd = sc.cassandraTable("test", "key_value")
   *
@@ -114,7 +116,7 @@ trait ConfigurationFunctions extends Serializable {
 
   def settings: CassandraSettings = CassandraSettings(Source(filtered), Some("spark."))
 
-  def connectorConf: CassandraConnectorConf = CassandraConnectorConf(settings)
+  def clusterConfig: ClusterConfig = ClusterConfig(settings)
 
   def writeConf: WriteConf = WriteConf(settings)
 

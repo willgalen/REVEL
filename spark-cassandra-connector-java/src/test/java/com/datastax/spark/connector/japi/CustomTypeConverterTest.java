@@ -2,7 +2,7 @@ package com.datastax.spark.connector.japi;
 
 import akka.japi.JavaPartialFunction;
 import com.datastax.spark.connector.japi.types.JavaTypeConverter;
-import com.datastax.driver.scala.core.utils.JavaApiHelper$;
+import com.datastax.spark.connector.util.JavaApiHelper$;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

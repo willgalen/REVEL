@@ -54,27 +54,15 @@ object ColumnDataType {
     driver.scala.types.FloatType      -> catalyst.types.FloatType,
     driver.scala.types.DoubleType     -> catalyst.types.DoubleType,
 
-    driver.scala.types.VarIntType     -> catalyst.types.DecimalType, // no native arbitrary-size integer type
-    driver.scala.types.DecimalType    -> catalyst.types.DecimalType,
+    driver.scala.types.VarIntType     -> catalyst.types.DecimalType(), // no native arbitrary-size integer type
+    driver.scala.types.DecimalType    -> catalyst.types.DecimalType(),
 
     driver.scala.types.TimestampType  -> catalyst.types.TimestampType,
     driver.scala.types.InetType       -> catalyst.types.StringType,
     driver.scala.types.UUIDType       -> catalyst.types.StringType,
     driver.scala.types.TimeUUIDType   -> catalyst.types.StringType,
-    driver.scala.types.BlobType       -> catalyst.types.ByteType,
-  
-    // TODO: This mapping is useless, it is here only to avoid lookup failure if a table contains a UDT column. 
-    // It is not possible to read UDT columns in SparkSQL now. 
-    connector.types.UserDefinedTypeStub -> catalyst.types.StructType(Seq.empty)
+    driver.scala.types.BlobType       -> catalyst.types.ByteType
   )
-
- /* def catalystDataType(cassandraType: com.datastax.driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
-    cassandraType match {
-      case com.datastax.driver.scala.types.SetType(et)      => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
-      case com.datastax.driver.scala.types.ListType(et)     => catalyst.types.ArrayType(primitiveTypeMap(et), nullable)
-      case com.datastax.driver.scala.types.MapType(kt, vt)  => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
-      case _                                => primitiveTypeMap(cassandraType)
- */
 
   def catalystDataType(cassandraType: driver.scala.types.ColumnType[_], nullable: Boolean): catalyst.types.DataType = {
 
@@ -87,7 +75,6 @@ object ColumnDataType {
       case driver.scala.types.MapType(kt, vt)         => catalyst.types.MapType(primitiveTypeMap(kt), primitiveTypeMap(vt), nullable)
       case driver.scala.types.UserDefinedType(fields) => catalyst.types.StructType(fields.map(catalystStructField))
       case _                                       => primitiveTypeMap(cassandraType)
-
     }
   }
 }

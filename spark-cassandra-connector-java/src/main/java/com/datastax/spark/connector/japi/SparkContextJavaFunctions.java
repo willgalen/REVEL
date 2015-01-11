@@ -11,7 +11,7 @@ import com.datastax.driver.scala.core.io.RowReaderFactory;
 import org.apache.spark.SparkContext;
 import scala.Tuple2;
 
-import static com.datastax.driver.scala.core.utils.JavaApiHelper.getClassTag;
+import static com.datastax.spark.connector.util.JavaApiHelper.getClassTag;
 
 /**
  * Java API wrapper over {@link org.apache.spark.SparkContext} to provide Spark Cassandra Connector functionality.

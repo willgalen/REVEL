@@ -5,6 +5,7 @@ import java.net.URLClassLoader
 
 import scala.collection.mutable.ArrayBuffer
 import org.apache.spark.repl.SparkILoop
+import com.datastax.driver.scala.embedded.EmbeddedCassandra
 
 trait SparkRepl {
   def runInterpreter(master: String, input: String): String = {

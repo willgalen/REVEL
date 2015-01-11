@@ -12,6 +12,7 @@ import kafka.serializer.StringEncoder
 import kafka.server.{KafkaConfig, KafkaServer}
 import kafka.utils.ZKStringSerializer
 import org.I0Itec.zkclient.ZkClient
+import com.datastax.driver.scala.embedded._
 
 final class EmbeddedKafka(val kafkaParams: Map[String,String]) extends Embedded {
 

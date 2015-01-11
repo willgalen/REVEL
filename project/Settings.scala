@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import com.scalapenos.sbt.prompt.PromptTheme
 import sbt._
 import sbt.Keys._
 import sbtrelease.ReleasePlugin._
@@ -21,8 +22,7 @@ import sbtassembly.Plugin._
 import AssemblyKeys._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
-import com.typesafe.sbt.SbtScalariform
-import com.typesafe.sbt.SbtScalariform._
+import com.scalapenos.sbt.prompt.SbtPrompt.autoImport._
 
 import scala.collection.mutable
 import scala.language.postfixOps
@@ -41,7 +41,8 @@ object Settings extends Build {
     version in ThisBuild := "1.1.2-SNAPSHOT",
     scalaVersion := Versions.Scala,
     homepage := Some(url("https://github.com/datastax/spark-cassandra-connector")),
-    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0")))
+    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
+    promptTheme := theme
   )
 
   val parentSettings = buildSettings ++ Seq(
@@ -143,6 +144,21 @@ object Settings extends Build {
     if (System.getProperty("demos.assembly", "true").toBoolean) sbtAssemblySettings
     else Seq.empty
 
+  lazy val theme = PromptTheme(List(
+    text("[SBT] ", fg(green)),
+    userName(fg(000)),
+    text("@", fg(000)),
+    hostName(fg(000)),
+    text(":", fg(000)),
+    gitBranch(clean = fg(green), dirty = fg(20)),
+    text(":", fg(000)),
+    currentProject(fg(magenta)),
+    text("> ", fg(000))
+  ))
+
+  import com.typesafe.sbt.SbtScalariform
+  import com.typesafe.sbt.SbtScalariform._
+
   lazy val formatSettings = SbtScalariform.scalariformSettings ++ Seq(
     ScalariformKeys.preferences in Compile  := formattingPreferences,
     ScalariformKeys.preferences in Test     := formattingPreferences
@@ -156,24 +172,4 @@ object Settings extends Build {
       .setPreference(AlignSingleLineCaseStatements, true)
   }
 
-}
-
-object ShellPromptPlugin extends AutoPlugin {
-  override def trigger = allRequirements
-  override lazy val projectSettings = Seq(
-    shellPrompt := buildShellPrompt
-  )
-  val devnull: ProcessLogger = new ProcessLogger {
-    def info (s: => String) {}
-    def error (s: => String) { }
-    def buffer[T] (f: => T): T = f
-  }
-  def currBranch =
-    ("git status -sb" lines_! devnull headOption).
-      getOrElse("-").stripPrefix("## ")
-  val buildShellPrompt: State => String = {
-    case (state: State) =>
-      val currProject = Project.extract (state).currentProject.id
-      s"""$currProject:$currBranch> """
-  }
 }

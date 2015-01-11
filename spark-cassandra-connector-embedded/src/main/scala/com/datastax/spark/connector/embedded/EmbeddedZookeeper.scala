@@ -4,6 +4,7 @@ import java.net.InetSocketAddress
 
 import scala.util.Try
 import org.apache.zookeeper.server.{NIOServerCnxnFactory, ZooKeeperServer}
+import com.datastax.driver.scala.embedded._
 
 /** Implements a simple standalone ZooKeeperServer.
   * To create a ZooKeeper client object, the application needs to pass a

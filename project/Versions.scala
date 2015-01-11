@@ -16,6 +16,7 @@
 
 object Versions {
   val Akka            = "2.3.4"
+  val AkkaStream      = "0.11"
   val Cassandra       = "2.1.2"
   val CassandraDriver = "2.1.3"
   val CommonsIO       = "2.4"
@@ -26,7 +27,7 @@ object Versions {
   val JodaC           = "1.2"
   val JodaT           = "2.3"
   val JOpt            = "3.2"//4.7
-  val Kafka           = "0.8.0"//https://github.com/apache/spark/pull/3631
+  val Kafka           = "0.8.0"// waiting for GA: https://github.com/apache/spark/pull/3631
   val Lzf             = "0.8.4"
   val CodaHaleMetrics = "3.0.2"
   val Scala           = "2.10.4"

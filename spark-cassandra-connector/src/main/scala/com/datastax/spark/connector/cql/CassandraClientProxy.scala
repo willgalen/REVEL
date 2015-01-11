@@ -3,7 +3,7 @@ package com.datastax.spark.connector.cql
 import java.lang.reflect.{InvocationTargetException, Proxy, Method, InvocationHandler}
 import java.net.InetAddress
 
-import com.datastax.driver.scala.core.conf.CassandraConnectorConf
+import com.datastax.driver.scala.core.conf.ClusterConfig
 import org.apache.cassandra.thrift.{AuthenticationRequest, TFramedTransportFactory, Cassandra}
 import org.apache.thrift.protocol.TBinaryProtocol
 import org.apache.thrift.transport.TTransport
@@ -30,8 +30,8 @@ object CassandraClientProxy {
 
   /** Returns a proxy to the thrift client that provides closing the underlying transport by calling `close` method.
     * Without this method we'd have to keep references to two objects: the client and the transport. */
-  def wrap(conf: CassandraConnectorConf, host: InetAddress): CassandraClientProxy = {
-    val (client, transport) = createThriftClient(conf, host)
+  def wrap(conf: ClusterConfig, host: InetAddress): CassandraClientProxy = {
+    val (client, transport) = createThriftClient(conf, host, conf.rpcPort)
     val classLoader = getClass.getClassLoader
     val interfaces = Array[Class[_]](classOf[CassandraClientProxy])
     val invocationHandler = new ClientProxyHandler(client, transport)
@@ -42,12 +42,12 @@ object CassandraClientProxy {
     * Thrift going away eventually.
     * Creates and configures a Thrift client. To be removed in the near future,
     * when the dependency from Thrift will be completely dropped. */
-  private def createThriftClient(conf: CassandraConnectorConf, hostAddress: InetAddress): (Cassandra.Iface, TTransport)= {
+  private def createThriftClient(conf: ClusterConfig, hostAddress: InetAddress, rpcPort: Int): (Cassandra.Iface, TTransport)= {
     import scala.collection.JavaConversions._
     var transport: TTransport = null
     try {
       val transportFactory = new TFramedTransportFactory()
-      transport = transportFactory.openTransport(hostAddress.getHostAddress, conf.rpcPort)
+      transport = transportFactory.openTransport(hostAddress.getHostAddress, rpcPort)
       val client = new Cassandra.Client(new TBinaryProtocol(transport))
       val creds = conf.authConf.credentials
       if (creds.nonEmpty) {

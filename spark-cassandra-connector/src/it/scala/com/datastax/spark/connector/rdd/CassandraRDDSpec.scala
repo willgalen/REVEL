@@ -6,7 +6,8 @@ import java.util.Date
 import com.datastax.driver.scala.core._
 import com.datastax.driver.scala.mapping.DefaultColumnMapper
 import com.datastax.driver.scala.testkit._
-import com.datastax.spark.connector.testkit._
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.scalatest.{FlatSpec, Matchers}
 import org.joda.time.DateTime
 import com.datastax.spark.connector._
@@ -25,9 +26,8 @@ class MutableKeyValueWithConversion(var key: String, var group: Int) extends Ser
 class CassandraRDDSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate {
 
   useCassandraConfig("cassandra-default.yaml.template")
-  val conn = Connector(cassandraHost)
+  val conn = CassandraConnector(cassandraHost)
   val bigTableRowCount = 100000
-
 
   conn.withSessionDo { session =>
     session.execute("CREATE KEYSPACE IF NOT EXISTS read_test WITH REPLICATION = { 'class': 'SimpleStrategy', 'replication_factor': 1 }")
@@ -106,6 +106,7 @@ class CassandraRDDSpec extends FlatSpec with Matchers with SharedEmbeddedCassand
   }
 
   it should "allow to read a Cassandra table as Array of user-defined class objects" in {
+    import com.datastax.spark.connector
     val result = sc.cassandraTable[SampleScalaClass]("read_test", "simple_kv").collect()
     result should have length 3
     result.head.key should (be >= 1 and be <= 3)

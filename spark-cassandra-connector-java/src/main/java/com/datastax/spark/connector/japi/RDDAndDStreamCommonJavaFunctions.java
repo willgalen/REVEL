@@ -126,7 +126,7 @@ public abstract class RDDAndDStreamCommonJavaFunctions<T> {
             this.tableName = tableName;
             this.rowWriterFactory = rowWriterFactory;
             this.columnSelector = columnSelector;
-            this.connector = CassandraConnector.apply(getConfFunctions().connectorConf());
+            this.connector = CassandraConnector.apply(getConfFunctions().clusterConfig());
             this.writeConf = WriteConf.apply(settings);
         }
 

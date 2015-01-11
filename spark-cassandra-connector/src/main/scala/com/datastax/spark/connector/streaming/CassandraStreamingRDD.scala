@@ -17,7 +17,7 @@ class CassandraStreamingRDD[R] private[connector] (
     table: String,
     columns: ColumnSelector = AllColumns,
     where: CqlWhereClause = CqlWhereClause.empty,
-    readConf: ReadConf = ReadConf.Default)(
+    readConf: ReadConf = ReadConf())(
   implicit
     ct : ClassTag[R],
     @transient rrf: RowReaderFactory[R])

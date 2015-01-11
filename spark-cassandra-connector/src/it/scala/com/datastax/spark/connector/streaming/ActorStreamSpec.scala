@@ -2,7 +2,6 @@ package com.datastax.spark.connector.streaming
 
 import akka.actor.{ActorSystem, Props, Terminated}
 import akka.testkit.{ImplicitSender, TestKit}
-import com.datastax.driver.scala.core.conf.CassandraConnectorConf
 import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector.streaming.StreamingEvent.ReceiverStarted

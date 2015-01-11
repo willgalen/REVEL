@@ -1,17 +1,18 @@
 package com.datastax.spark.connector.japi.rdd;
 
+import scala.Tuple2;
+import scala.reflect.ClassTag;
+import org.apache.spark.api.java.JavaPairRDD;
 import com.datastax.driver.scala.core.conf.ReadConf;
-import com.datastax.driver.scala.core.utils.JavaApiHelper;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.japi.CassandraJavaUtil;
 import com.datastax.driver.scala.core.NamedColumnRef;
 import com.datastax.spark.connector.rdd.CassandraRDD;
-import org.apache.spark.api.java.JavaPairRDD;
-import scala.Tuple2;
-import scala.reflect.ClassTag;
+import com.datastax.spark.connector.util.JavaApiHelper;
 
-import static com.datastax.driver.scala.core.utils.JavaApiHelper.getClassTag;
-import static com.datastax.driver.scala.core.utils.JavaApiHelper.toScalaSeq;
+import static com.datastax.spark.connector.util.JavaApiHelper.getClassTag;
+import static com.datastax.spark.connector.util.JavaApiHelper.toScalaSeq;
+
 
 /**
  * A Java API wrapper over {@link com.datastax.spark.connector.rdd.CassandraRDD} of tuples to provide Spark Cassandra

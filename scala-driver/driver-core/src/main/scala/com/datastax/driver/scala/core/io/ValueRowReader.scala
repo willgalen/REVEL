@@ -1,0 +1,46 @@
+package com.datastax.driver.scala.core.io
+
+import com.datastax.driver.core.{ProtocolVersion, Row}
+import com.datastax.driver.scala.core._
+import com.datastax.driver.scala.core.utils.Reflection
+import com.datastax.driver.scala.types.TypeConverter
+
+class ValueRowReader[T: TypeConverter](columnRef: ColumnRef) extends RowReader[T] {
+
+  private val converter = implicitly[TypeConverter[T]]
+
+  /** Reads column values from low-level `Row` and turns them into higher level representation.
+    * @param row row fetched from Cassandra
+    * @param columnNames column names available in the `row` */
+  override def read(row: Row, columnNames: Array[String])(implicit protocolVersion: ProtocolVersion): T = {
+    columnRef match {
+      case ColumnIndex(idx) => converter.convert(AbstractGettableData.get(row, idx))
+      case NamedColumnRef(_, selectedAs) => converter.convert(AbstractGettableData.get(row, selectedAs))
+    }
+  }
+
+  /** List of columns this `RowReader` is going to read.
+    * Useful to avoid fetching the columns that are not needed. */
+  override def columnNames: Option[Seq[String]] = columnRef match {
+    case NamedColumnRef(_, selectedAs) => Some(Seq(selectedAs))
+    case _ => None
+  }
+
+  /** The number of columns that need to be fetched from C*. */
+  override def requiredColumns: Option[Int] = columnRef match {
+    case ColumnIndex(idx) => Some(idx)
+    case _ => None
+  }
+
+  override def consumedColumns: Option[Int] = Some(1)
+}
+
+class ValueRowReaderFactory[T: TypeConverter]
+  extends RowReaderFactory[T] {
+
+  override def rowReader(table: TableDef, options: RowReaderOptions): RowReader[T] = {
+    new ValueRowReader[T](ColumnIndex(options.offset))
+  }
+
+  override def targetClass: Class[T] = Reflection.getRuntimeClass(implicitly[TypeConverter[T]].targetTypeTag)
+}

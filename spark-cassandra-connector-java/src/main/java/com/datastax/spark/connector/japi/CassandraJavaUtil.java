@@ -2,7 +2,6 @@ package com.datastax.spark.connector.japi;
 
 import akka.japi.JAPI;
 import com.datastax.driver.scala.core.*;
-import com.datastax.driver.scala.core.utils.JavaApiHelper;
 import com.datastax.driver.scala.mapping.ColumnMapper;
 import com.datastax.driver.scala.core.io.ClassBasedRowReaderFactory;
 import com.datastax.driver.scala.core.io.RowReaderFactory;
@@ -10,6 +9,8 @@ import com.datastax.driver.scala.core.io.ValueRowReaderFactory;
 import com.datastax.driver.scala.types.TypeConverter;
 import com.datastax.driver.scala.types.TypeConverter$;
 import com.datastax.driver.scala.core.io.RowWriterFactory;
+import com.datastax.spark.connector.cql.CassandraConnector;
+import com.datastax.spark.connector.util.JavaApiHelper;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.spark.SparkContext;
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.datastax.driver.scala.core.utils.JavaApiHelper.*;
+import static com.datastax.spark.connector.util.JavaApiHelper.*;
 
 /**
  * The main entry point to Spark Cassandra Connector Java API.
@@ -484,7 +485,7 @@ public class CassandraJavaUtil {
     /**
      * A simple method which wraps the given connector instance into Option.
      */
-    public static Option<Connector> connector(Connector connector) {
+    public static Option<CassandraConnector> connector(CassandraConnector connector) {
         return Option.apply(connector);
     }
 

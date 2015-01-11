@@ -1,7 +1,6 @@
 package com.datastax.spark.connector.japi;
 
 import com.datastax.driver.scala.core.ColumnSelector;
-import com.datastax.driver.scala.core.Connector;
 import com.datastax.spark.connector.SparkConfFunctions;
 import com.datastax.spark.connector.cql.CassandraConnector;
 import com.datastax.spark.connector.streaming.DStreamFunctions;

@@ -1,6 +1,6 @@
 package com.datastax.spark.connector.repl
 
-import com.datastax.driver.scala.core.Connector$
+import com.datastax.spark.connector.cql.CassandraConnector
 import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
 import org.scalatest.{FlatSpec, Matchers}
 import com.datastax.spark.connector.embedded._
@@ -8,7 +8,7 @@ import com.datastax.spark.connector.embedded._
 class CassandraRDDReplSpec extends FlatSpec with Matchers with SharedEmbeddedCassandra with SparkTemplate with SparkRepl {
   useCassandraConfig("cassandra-default.yaml.template")
 
-  val conn = Connector(Set(cassandraHost))
+  val conn = CassandraConnector(cassandraHost)
 
   conn.withSessionDo { session =>
     session.execute("CREATE KEYSPACE IF NOT EXISTS read_test WITH REPLICATION = { 'class': 'SimpleStrategy', 'replication_factor': 1 }")

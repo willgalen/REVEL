@@ -1,5 +1,6 @@
 package com.datastax.spark.connector.embedded
 
+import com.datastax.driver.scala.embedded.EmbeddedCassandra
 import org.apache.spark.{SparkEnv, SparkConf, SparkContext}
 
 trait SparkTemplate {

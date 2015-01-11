@@ -15,6 +15,7 @@ import com.datastax.spark.connector.util.Logging
 import com.datastax.spark.connector.embedded._
 import com.datastax.spark.connector._
 import com.datastax.spark.connector.streaming._
+import com.datastax.driver.scala.embedded.Assertions
 
 /**
  * Simple Kafka Spark Streaming demo which
