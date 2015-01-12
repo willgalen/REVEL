@@ -3,12 +3,11 @@ package com.datastax.driver.scala
 import java.net.InetAddress
 
 import akka.actor.ActorSystem
-import akka.testkit.TestKit
 import com.datastax.driver.scala.core.SimpleConnectionFactory
 import com.datastax.driver.scala.core.conf.{NoAuthConf, Cluster}
 import com.datastax.driver.scala.testkit.AbstractSpec
 
-class CassandraExtensionSpec extends TestKit(ActorSystem("Cassandra")) with AbstractSpec {
+class CassandraExtensionSpec extends akka.testkit.TestKit(ActorSystem("Cassandra")) with AbstractSpec {
 
   val cassandra = CassandraExtension(system)
   val config = cassandra.context.config

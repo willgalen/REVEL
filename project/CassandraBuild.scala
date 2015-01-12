@@ -35,7 +35,7 @@ object CassandraBuild extends Build {
     id = "akka-cassandra",
     base = path("akka-cassandra"),
     settings = moduleSettings(DriverDependencies.akka),
-    dependencies = Seq(driver, embeddedCassandra % "test->test;it->it,test;")
+    dependencies = Seq(driver % "compile->compile;test->test;it->it,test;", embeddedCassandra % "test->test;it->it,test;")
   ) configs (IntegrationTest)
 
   lazy val embeddedCassandra = Project(

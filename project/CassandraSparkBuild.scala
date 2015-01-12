@@ -22,7 +22,8 @@ object CassandraSparkBuild extends Build {
   import Settings._
   import ProjectTemplates._
 
-  lazy val root = RootProject("root", file("."), Seq(connector, jconnector, embedded, demos))
+  lazy val root = RootProject("root", file("."),
+    Seq(connector, jconnector, embedded, demos, CassandraBuild.driver, CassandraBuild.akka, CassandraBuild.embeddedCassandra))
 
   lazy val connector = AssemblyProject(
     "spark-cassandra-connector", Seq(CassandraBuild.driver, embedded % "test->test;it->it,test;"))
@@ -50,11 +51,9 @@ object Dependencies {
     val akkaActor           = "com.typesafe.akka"       %% "akka-actor"            % Akka           % "provided"                 // ApacheV2
     val akkaRemote          = "com.typesafe.akka"       %% "akka-remote"           % Akka           % "provided"                 // ApacheV2
     val akkaSlf4j           = "com.typesafe.akka"       %% "akka-slf4j"            % Akka           % "provided"                 // ApacheV2
-    val akkaStream        = "com.typesafe.akka"   %% "akka-stream-experimental"          % "0.11"
-    val akkaHttpCore      = "com.typesafe.akka"   %% "akka-http-core-experimental"       % "0.11"
-    val cassandraThrift     = "org.apache.cassandra"    % "cassandra-thrift"       % Cassandra        exclude("com.google.guava", "guava") // ApacheV2
-    val cassandraClient     = "org.apache.cassandra"    % "cassandra-clientutil"   % Cassandra        exclude("com.google.guava", "guava") // ApacheV2
-    val cassandraDriver     = "com.datastax.cassandra"  % "cassandra-driver-core"  % CassandraDriver  exclude("com.google.guava", "guava") // ApacheV2
+    val cassandraThrift     = "org.apache.cassandra"    % "cassandra-thrift"       % Cassandra      exclude("com.google.guava", "guava") // ApacheV2
+    val cassandraClient     = "org.apache.cassandra"    % "cassandra-clientutil"   % Cassandra      exclude("com.google.guava", "guava") // ApacheV2
+    val cassandraDriver     = "com.datastax.cassandra"  % "cassandra-driver-core"  % CassandraDriver exclude("com.google.guava", "guava") // ApacheV2
     val commonsLang3        = "org.apache.commons"      % "commons-lang3"          % CommonsLang3                                // ApacheV2
     val config              = "com.typesafe"            % "config"                 % Config         % "provided"                 // ApacheV2
     val guava               = "com.google.guava"        % "guava"                  % Guava
