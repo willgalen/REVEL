@@ -2,9 +2,10 @@ package com.datastax.driver.scala.types
 
 import java.io.ObjectOutputStream
 
-import scala.collection.JavaConversions._
+import scala.language.existentials
 import scala.reflect.runtime.universe._
 
+import scala.collection.JavaConversions._
 import com.datastax.driver.core.{DataType, ProtocolVersion, UDTValue => DriverUDTValue, UserType}
 
 case class FieldDef(fieldName: String, fieldType: ColumnType[_])

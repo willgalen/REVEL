@@ -3,6 +3,7 @@ package com.datastax.driver.scala.core.utils
 import java.lang.reflect.Constructor
 
 import scala.reflect.runtime.universe._
+import scala.language.existentials
 
 import scala.util.{Failure, Success, Try}
 import com.google.common.primitives.Primitives

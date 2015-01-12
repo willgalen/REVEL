@@ -94,13 +94,8 @@ class CassandraContext(settings: CassandraSettings) extends CassandraIO(settings
     * Nodes from other DCs are not included.*/
   def closestLiveHost: Host = CassandraCluster(config).closestLiveHost
 
-  def execute(cql: String)(implicit cluster: CassandraCluster = CassandraCluster(config)): Unit =
-    cluster.withSessionDo(_.execute(cql))
-
-  def execute(cql: Seq[String]): Unit = {
-    val cluster = CassandraCluster(config)
-    cql.foreach(execute(_)(cluster))
-  }
+  def execute(cql: String*)(implicit cluster: CassandraCluster = CassandraCluster(config)): Unit =
+    cluster.withSessionDo { session => cql.foreach(session.execute) }
 
   private[datastax] def shutdown(): Unit = {
     log.info(s"Cassandra shutting down.")

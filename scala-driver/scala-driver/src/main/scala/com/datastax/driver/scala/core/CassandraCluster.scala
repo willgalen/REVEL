@@ -3,6 +3,8 @@ package com.datastax.driver.scala.core
 import java.io.IOException
 import java.net.InetAddress
 
+import scala.language.reflectiveCalls
+
 import scala.collection.JavaConversions._
 import com.datastax.driver.core.Cluster
 import com.datastax.driver.core._

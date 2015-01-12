@@ -1,12 +1,11 @@
 package com.datastax.driver.scala.testkit
 
-import com.datastax.driver.scala.core.conf.CassandraSettings
-import org.scalatest.{FlatSpec, BeforeAndAfter, Matchers, WordSpecLike}
+import org.scalatest._
 
 /** Basic unit test abstraction. */
-trait AbstractSpec extends WordSpecLike with Matchers with BeforeAndAfter
+trait AbstractSpec extends WordSpecLike with Matchers with BeforeAndAfter with BeforeAndAfterAll
 
-trait AbstractFlatSpec extends FlatSpec with Matchers with BeforeAndAfter
+trait AbstractFlatSpec extends FlatSpec with Matchers with BeforeAndAfter with BeforeAndAfterAll
 
 case class KeyValueWithConversion(key: String, group: Int, value: Long)
 case class KeyGroup(key: Int, group: Int)

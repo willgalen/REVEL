@@ -56,25 +56,23 @@ object CassandraExtension extends ExtensionId[CassandraExtension] with Extension
 
 }
 
-final class CassandraExtension private(val system: ExtendedActorSystem) extends Extension with Logging {
-
+final class CassandraExtension(val system: ExtendedActorSystem) extends Extension with Logging {
 
   val context = CassandraContext()
   import context._
 
   val config = context.config
 
-  private def clusterMetadata: Metadata = context.clusterMetadata
+  private def clusterMetadata: Metadata =
+    context.clusterMetadata
 
-  def execute(cql: String)(implicit cluster: CassandraCluster = CassandraCluster(config)): Unit =
-    context execute cql
-
-  def execute(cql: Seq[String])(implicit cluster: CassandraCluster = CassandraCluster(config)): Unit =
-    context execute cql
+  def execute(cql: String*)(implicit cluster: CassandraCluster = CassandraCluster(config)): Unit =
+    context.execute(cql:_*)
 
   import com.datastax.driver.scala.core._
 
-  def stream[T](keyspaceName: String, tableName: String, readConf: ReadConf = DefaultReadConf): Stream[T] = {
+  def stream[T](keyspaceName: String, tableName: String, readConf: ReadConf = DefaultReadConf)
+               (implicit ct: ClassTag[T], rrf: RowReaderFactory[T], ev: ValidSourceType[T]): Stream[T] = {
     table[T](keyspaceName, tableName).stream
   }
 
@@ -88,20 +86,19 @@ final class CassandraExtension private(val system: ExtendedActorSystem) extends 
               (implicit ct: ClassTag[T], rrf: RowReaderFactory[T], ev: ValidSourceType[T]): TableReader[T] = {
     cassandra.table[T](keyspaceName, tableName, readConf)
   }
-/* def table[T](keyspace: String, table: String, readConf: ReadConf = DefaultReadConf)
-              (implicit ct: ClassTag[T], rrf: RowReaderFactory[T], ev: ValidSourceType[T]): TableReader[T] = {
-    TableReader[T](config, keyspace, table, readConf)
-  }
-*/
-  def clusterConfiguration: Configuration = context.clusterConfiguration
+
+  def clusterConfiguration: Configuration =
+    context.clusterConfiguration
 
   /** Returns a current set of known cluster hosts. */
-  def clusterHosts: Set[Host] = context.clusterHosts
+  def clusterHosts: Set[Host] =
+    context.clusterHosts
 
   private[datastax] def remotes: Set[InetSocketAddress] =
     clusterHosts.map(a => new InetSocketAddress(a.getAddress, config.nativePort))
 
-  def keyspace(name: String): KeyspaceMetadata = context.keyspace(name)
+  def keyspace(name: String): KeyspaceMetadata =
+    context.keyspace(name)
 
   /** Finds the DCs of the contact points and returns hosts in those DC(s) from `clusterHosts`.
     * Guarantees to return at least the hosts pointed by `contactPoints`, even if their
@@ -117,7 +114,8 @@ final class CassandraExtension private(val system: ExtendedActorSystem) extends 
     *
     * Nodes within a group are ordered randomly.
     * Nodes from other DCs are not included.*/
-  def closestLiveHost: Host = context.closestLiveHost
+  def closestLiveHost: Host =
+    context.closestLiveHost
 
   system.registerOnTermination { context.shutdown() }
 

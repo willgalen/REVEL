@@ -11,7 +11,7 @@ class CassandraExtensionDemo {
 
   val cassandra = CassandraExtension(system)
 
-  cassandra execute Seq(
+  cassandra.execute(
     "CREATE KEYSPACE IF NOT EXISTS test WITH REPLICATION = {'class': 'SimpleStrategy', 'replication_factor': 1 }",
     "CREATE TABLE IF NOT EXISTS test.key_value (key INT PRIMARY KEY, value VARCHAR)",
     "TRUNCATE test.key_value",
