@@ -1,10 +1,10 @@
 package com.datastax.driver.scala.types
 
-import com.datastax.driver.core.{ProtocolVersion, UDTValue => DriverUDTValue}
-import com.datastax.driver.scala.core.{AbstractGettableData, ScalaGettableData}
+import scala.reflect.runtime.universe._
 
 import scala.collection.JavaConversions._
-import scala.reflect.runtime.universe._
+import com.datastax.driver.core.{ProtocolVersion, UDTValue => DriverUDTValue}
+import com.datastax.driver.scala.core.{AbstractGettableData, ScalaGettableData}
 
 final class UDTValue(val fieldNames: IndexedSeq[String], val fieldValues: IndexedSeq[AnyRef])
   extends ScalaGettableData with Serializable

@@ -6,8 +6,11 @@ import akka.actor._
 import com.datastax.driver.core.{Configuration, KeyspaceMetadata, Metadata, Host}
 import com.datastax.driver.scala.core.CassandraCluster
 import com.datastax.driver.scala.core.conf.ReadConf
-import com.datastax.driver.scala.core.io.{TableReader, CassandraContext}
+import com.datastax.driver.scala.core.io.{RowReaderFactory, TableReader, CassandraContext}
 import com.datastax.driver.scala.core.utils.Logging
+import com.datastax.driver.scala.types.ValidSourceType
+
+import scala.reflect.ClassTag
 
 /**
  * An Akka Extension for Cassandra.
@@ -81,10 +84,15 @@ final class CassandraExtension private(val system: ExtendedActorSystem) extends 
    *
    * {{{table("", "").select("columnName1", "columnName2").where("x = ?", value").stream}}}
    */
-  def table[T](keyspaceName: String, tableName: String, readConf: ReadConf = DefaultReadConf): TableReader[T] = {
+  def table[T](keyspaceName: String, tableName: String, readConf: ReadConf = DefaultReadConf)
+              (implicit ct: ClassTag[T], rrf: RowReaderFactory[T], ev: ValidSourceType[T]): TableReader[T] = {
     cassandra.table[T](keyspaceName, tableName, readConf)
   }
-
+/* def table[T](keyspace: String, table: String, readConf: ReadConf = DefaultReadConf)
+              (implicit ct: ClassTag[T], rrf: RowReaderFactory[T], ev: ValidSourceType[T]): TableReader[T] = {
+    TableReader[T](config, keyspace, table, readConf)
+  }
+*/
   def clusterConfiguration: Configuration = context.clusterConfiguration
 
   /** Returns a current set of known cluster hosts. */
