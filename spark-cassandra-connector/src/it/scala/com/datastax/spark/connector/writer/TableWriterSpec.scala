@@ -46,6 +46,7 @@ class TableWriterSpec extends SparkCassandraITFlatSpecBase {
     session.execute("CREATE TABLE IF NOT EXISTS write_test.counters2 (pkey INT PRIMARY KEY, c counter)")
     session.execute("CREATE TABLE IF NOT EXISTS write_test.\"camelCase\" (\"primaryKey\" INT PRIMARY KEY, \"textValue\" text)")
     session.execute("CREATE TABLE IF NOT EXISTS write_test.single_column (pk INT PRIMARY KEY)")
+    session.execute("CREATE TABLE IF NOT EXISTS write_test.map_tuple (a TEXT, b TEXT, c TEXT, PRIMARY KEY (a))")
 
     session.execute("CREATE TYPE write_test.address (street text, city text, zip int)")
     session.execute("CREATE TABLE IF NOT EXISTS write_test.udts(key INT PRIMARY KEY, name text, addr frozen<address>)")
@@ -411,6 +412,46 @@ class TableWriterSpec extends SparkCassandraITFlatSpecBase {
       "key" as "devil", "group" as "cat", "value"
     ))
     verifyKeyValueTable("key_value_17")
+  }
+
+  it should "write an RDD of tuples mapped to different ordering of fields" in {
+    val col = Seq (("x","a","b"))
+    sc.parallelize(col)
+      .saveToCassandra("write_test",
+        "map_tuple",
+        SomeColumns(("a" as "_2"), ("c" as "_1")))
+    conn.withSessionDo { session =>
+      val result = session.execute("SELECT * FROM write_test.map_tuple").all()
+      result should have size 1
+      val row = result(0)
+      row.getString("a") should be ("a")
+      row.getString("c") should be ("x")
+    }
+  }
+
+  it should "write an RDD of tuples with only some fields aliased" in {
+     val col = Seq (("c","a","b"))
+    sc.parallelize(col)
+      .saveToCassandra("write_test",
+        "map_tuple",
+        SomeColumns(("a" as "_2"),("b" as "_3"), ("c" as "_1")))
+    conn.withSessionDo { session =>
+      val result = session.execute("SELECT * FROM write_test.map_tuple").all()
+      result should have size 1
+      val row = result(0)
+      row.getString("a") should be ("a")
+      row.getString("b") should be ("b")
+      row.getString("c") should be ("c")
+    }
+  }
+
+  it should "throw an exception if you try to alias tuple fields which don't exist" in {
+    val col = Seq (("c"))
+    intercept[IllegalArgumentException] {
+      sc.parallelize(col).saveToCassandra("write_test",
+        "map_tuple",
+        SomeColumns(("a" as "_2"),("b" as "_3"), ("c" as "_1")))
+    }
   }
 
   it should "write RDD of objects with inherited fields" in {

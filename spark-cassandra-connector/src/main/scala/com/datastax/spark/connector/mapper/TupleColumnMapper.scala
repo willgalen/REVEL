@@ -3,7 +3,7 @@ package com.datastax.spark.connector.mapper
 import scala.reflect.runtime.universe._
 import scala.reflect.ClassTag
 
-import com.datastax.spark.connector.{ColumnRef, ColumnIndex}
+import com.datastax.spark.connector.{ColumnName, NamedColumnRef, ColumnRef, ColumnIndex}
 import com.datastax.spark.connector.cql.{RegularColumn, PartitionKeyColumn, ColumnDef, TableDef}
 import com.datastax.spark.connector.types.ColumnType
 import com.datastax.spark.connector.util.Reflect
@@ -20,12 +20,24 @@ class TupleColumnMapper[T <: Product : TypeTag : ClassTag] extends ColumnMapper[
     val GetterRegex = "_([0-9]+)".r
     val cls = implicitly[ClassTag[T]].runtimeClass
 
+    val methodNames = cls.getMethods().map(_.getName)
+    for ( (alias, name) <- aliases )
+    {
+      if (alias != name && !methodNames.contains(alias))
+       throw new IllegalArgumentException(
+         s"""Found Alias: $alias
+           |Tuple provided does not have a getter for that alias.'""".stripMargin)
+    }
+
     val constructor =
       indexedColumnRefs(cls.getConstructors()(0).getParameterTypes.length)
 
-    val getters = {
-      for (name @ GetterRegex(id) <- cls.getMethods.map(_.getName))
-      yield (name, ColumnIndex(id.toInt - 1))
+    val getters = if (aliases.isEmpty || aliases.forall{case (k,v) => k == v}) {
+      for (name@GetterRegex(id) <- cls.getMethods.map(_.getName))
+        yield (name, ColumnIndex(id.toInt - 1))
+    }.toMap else {
+      for (name@GetterRegex(id) <- cls.getMethods.map(_.getName) if aliases.contains(name))
+        yield (name, ColumnName(aliases(name)))
     }.toMap
 
     val setters =
