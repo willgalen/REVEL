@@ -300,10 +300,10 @@ val emptyJoin = internalJoin.toEmptyCassandraRDD // Makes an EmptyRDD
 The following options can be specified in the SparkConf object or as a jvm
 -Doption to adjust the read parameters of a Cassandra table.
 
-| Environment Variable                    | Controls                                                   | Default
-|-----------------------------------------|------------------------------------------------------------|---------
-| spark.cassandra.input.split.size        | approx number of Cassandra partitions in a Spark partition | 100000
-| spark.cassandra.input.page.row.size     | number of CQL rows fetched per driver request              | 1000
-| spark.cassandra.input.consistency.level | consistency level to use when reading                      | LOCAL_ONE
+| Environment Variable                     | Controls                                                                                    | Default
+|------------------------------------------|---------------------------------------------------------------------------------------------|---------
+| spark.cassandra.input.split.size_in_mb   | desired amount of data per Spark partition in MB, to calculate proper number of partitions  | 64  
+| spark.cassandra.input.fetch.size_in_rows | number of CQL rows fetched per driver request                                               | 1000
+| spark.cassandra.input.consistency.level  | consistency level to use when reading                                                       | LOCAL_ONE
 
 [Next - Server-side data selection and filtering](3_selection.md)
