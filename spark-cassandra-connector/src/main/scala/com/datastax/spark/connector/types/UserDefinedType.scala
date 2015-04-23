@@ -8,9 +8,10 @@ import scala.reflect.runtime.universe._
 import com.datastax.driver.core.{UDTValue => DriverUDTValue, ProtocolVersion, UserType, DataType}
 import com.datastax.spark.connector.UDTValue
 
-case class FieldDef(fieldName: String, fieldType: ColumnType[_])
+case class UDTFieldDef(fieldName: String, fieldType: ColumnType[_])
 
-case class UserDefinedType(name: String, fields: Seq[FieldDef]) extends ColumnType[UDTValue] {
+case class UserDefinedType(name: String, fields: Seq[UDTFieldDef])
+  extends ColumnType[UDTValue] {
   lazy val fieldNames = fields.toIndexedSeq.map(_.fieldName)
   lazy val fieldTypes = fields.toIndexedSeq.map(_.fieldType)
   def isCollection = false
