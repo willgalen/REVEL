@@ -2,7 +2,9 @@ package com.datastax.spark.connector.writer
 
 import java.io.IOException
 
-import com.datastax.spark.connector.mapper.DefaultColumnMapper
+import scala.reflect.ClassTag
+
+import com.datastax.spark.connector.mapper.{ColumnMapper, DefaultColumnMapper}
 
 import scala.collection.JavaConversions._
 
@@ -368,8 +370,9 @@ class TableWriterSpec extends SparkCassandraITFlatSpecBase {
 
   it should "write RDD of case class objects with per-row TTL with custom mapping" in {
     val col = Seq(KeyValueWithTTL(1, 1L, "value1", 100), KeyValueWithTTL(2, 2L, "value2", 200), KeyValueWithTTL(3, 3L, "value3", 300))
-    sc.parallelize(col).saveToCassandra("write_test", "key_value_15", writeConf = WriteConf(ttl = TTLOption.perRow("ttl_placeholder")))(
-      conn, DefaultRowWriter.factory(new DefaultColumnMapper(Map("ttl" -> "ttl_placeholder"))))
+    implicit val mapping = new DefaultColumnMapper[KeyValueWithTTL](Map("ttl" -> "ttl_placeholder"))
+
+    sc.parallelize(col).saveToCassandra("write_test", "key_value_15", writeConf = WriteConf(ttl = TTLOption.perRow("ttl_placeholder")))
 
     verifyKeyValueTable("key_value_15")
 
@@ -386,9 +389,13 @@ class TableWriterSpec extends SparkCassandraITFlatSpecBase {
   it should "write RDD of case class objects with per-row timestamp with custom mapping" in {
     val ts = System.currentTimeMillis() - 1000L
     val col = Seq(KeyValueWithTimestamp(1, 1L, "value1", ts * 1000L + 100L), KeyValueWithTimestamp(2, 2L, "value2", ts * 1000L + 200L), KeyValueWithTimestamp(3, 3L, "value3", ts * 1000L + 300L))
-    sc.parallelize(col).saveToCassandra("write_test", "key_value_16",
-      writeConf = WriteConf(timestamp = TimestampOption.perRow("timestamp_placeholder")))(
-        conn, DefaultRowWriter.factory(new DefaultColumnMapper(Map("timestamp" -> "timestamp_placeholder"))))
+
+    implicit val mapper =
+      new DefaultColumnMapper[KeyValueWithTimestamp](Map("timestamp" -> "timestamp_placeholder"))
+
+    sc.parallelize(col).saveToCassandra(
+      "write_test", "key_value_16",
+      writeConf = WriteConf(timestamp = TimestampOption.perRow("timestamp_placeholder")))
 
     verifyKeyValueTable("key_value_16")
 
