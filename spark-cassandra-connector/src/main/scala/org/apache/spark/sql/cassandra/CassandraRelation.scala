@@ -69,7 +69,7 @@ object ColumnDataType {
   def catalystDataType(cassandraType: connector.types.ColumnType[_], nullable: Boolean): types.DataType = {
 
     def catalystStructField(field: UDTFieldDef): StructField =
-      StructField(field.fieldName, catalystDataType(field.fieldType, nullable = true), nullable = true)
+      StructField(field.columnName, catalystDataType(field.columnType, nullable = true), nullable = true)
 
     cassandraType match {
       case connector.types.SetType(et)                => types.ArrayType(primitiveTypeMap(et), nullable)
