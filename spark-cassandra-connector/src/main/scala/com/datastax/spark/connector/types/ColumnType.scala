@@ -55,9 +55,9 @@ object ColumnType {
     * This guarantees that if T is Serializable, the collection is Serializable. */
   private def unlazify[T](seq: Seq[T]): Seq[T] = Seq(seq: _*)
 
-  private def fields(dataType: UserType): Seq[FieldDef] = unlazify {
+  private def fields(dataType: UserType): Seq[UDTFieldDef] = unlazify {
     for (field <- dataType.iterator().toSeq) yield
-      FieldDef(field.getName, fromDriverType(field.getType))
+      UDTFieldDef(field.getName, fromDriverType(field.getType))
   }
 
   def fromDriverType(dataType: DataType): ColumnType[_] = {
