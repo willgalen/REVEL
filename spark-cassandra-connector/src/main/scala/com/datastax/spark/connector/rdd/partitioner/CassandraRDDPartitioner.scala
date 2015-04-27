@@ -161,7 +161,7 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
         val splitter = createSplitterFor(tokenRanges)
         val splits = splitsOf(tokenRanges, splitter).toSeq
         val maxGroupSize = tokenRanges.size / endpointCount
-        val clusterer = new TokenRangeClusterer[V, T](splitSize, maxGroupSize)
+        val clusterer = new MergingTokenRangeClusterer[V, T](splitSize, maxGroupSize)
         val groups = clusterer.group(splits).toArray
 
         if (containsPartitionKey(whereClause)) {
