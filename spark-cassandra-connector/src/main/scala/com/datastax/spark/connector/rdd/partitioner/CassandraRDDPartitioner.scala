@@ -168,7 +168,9 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
 
         val splits = splitsOf(tokenRanges, splitter, rowCountPerPartition / 10).toSeq
 
-        val clusterer = new TokenRangeClusterer[V, T](rowCountPerPartition, 10)
+        println(s"rowCountPerNode = $rowCountPerNode, partitionsPerNode = $partitionsPerNode, rowCountPerPartition = $rowCountPerPartition")
+
+        val clusterer = new TokenRangeClusterer[V, T](rowCountPerPartition)
         val groups = clusterer.group(splits).toArray
 
         if (containsPartitionKey(whereClause)) {
