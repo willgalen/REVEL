@@ -52,7 +52,7 @@ class TokenRangeClusterer[V, T <: Token[V]](maxRowCountPerGroup: Long, maxGroupS
   def group(tokenRanges: Seq[TokenRange[V, T]]): Iterable[Seq[TokenRange[V, T]]] = {
     // sort by endpoints lexicographically
     // this way ranges on the same host are grouped together
-    val sortedRanges = tokenRanges.sortBy(_.endpoints.toSeq.sorted)
+    val sortedRanges = tokenRanges.sortBy(_.endpoints.hashCode())
     group(sortedRanges.toStream, Vector.empty)
   }
 
