@@ -6,6 +6,7 @@ import scala.Ordering.Implicits._
 import scala.annotation.tailrec
 
 import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenRange}
+import com.datastax.spark.connector.util.PriorityHashMap
 
 /** Divides a set of token ranges into groups containing not more than `maxRowCountPerGroup` rows
   * and not more than `maxGroupSize` token ranges. Each group will form a single `CassandraRDDPartition`.
@@ -52,6 +53,8 @@ class TokenRangeClusterer3[V, T <: Token[V]](maxRowCountPerGroup: Long, maxGroup
     * Each group will make a single Spark task. */
   def group(tokenRanges: Seq[TokenRange[V, T]]): Iterable[Seq[TokenRange[V, T]]] = {
     val trReplicas = for (tokenRange ← tokenRanges; endpoint ← tokenRange.endpoints) yield (tokenRange, endpoint)
+
+    val endpoints = trReplicas.map(_._2).toSet
 
     val rf = trReplicas.size.toDouble / tokenRanges.size.toDouble
 

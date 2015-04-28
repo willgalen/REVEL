@@ -69,7 +69,7 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
 
   private def quote(name: String) = "\"" + name + "\""
 
-  private def splitsOf(tokenRanges: Iterable[TokenRange], splitter: TokenRangeSplitter[V, T]): Iterable[TokenRange] = {
+  private def splitsOf(tokenRanges: Iterable[TokenRange], splitter: TokenRangeSplitter[V, T], splitSize: Long): Iterable[TokenRange] = {
     val parTokenRanges = tokenRanges.par
     parTokenRanges.tasksupport = new ForkJoinTaskSupport(CassandraRDDPartitioner.pool)
     (for (tokenRange <- parTokenRanges;
@@ -109,7 +109,7 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
     val random = new scala.util.Random(0)
     val tokenRangeSample = random.shuffle(tokenRanges).take(CassandraRDDPartitioner.TokenRangeSampleSize)
     val splitter = new ServerSideTokenRangeSplitter(connector, keyspaceName, tableName, tokenFactory)
-    val splits = splitsOf(tokenRangeSample, splitter)
+    val splits = splitsOf(tokenRangeSample, splitter, splitSize)
     val tokenCountSum = splits.map(tokenCount).sum
     val rowCountSum = splits.map(_.rowCount.get).sum
     rowCountSum.toDouble / tokenCountSum.toDouble
@@ -156,12 +156,19 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
   def partitions(whereClause: CqlWhereClause): Array[Partition] = {
     connector.withCassandraClientDo {
       client =>
-        val tokenRanges = describeRing(client)
-        val endpointCount = tokenRanges.map(_.endpoints).reduce(_ ++ _).size
-        val splitter = createSplitterFor(tokenRanges)
-        val splits = splitsOf(tokenRanges, splitter).toSeq
-        val maxGroupSize = tokenRanges.size / endpointCount
-        val clusterer = new TokenRangeClusterer3[V, T](splitSize, maxGroupSize)
+        val tokenRanges: Seq[TokenRange] = describeRing(client)
+        val endpointCount: Int = tokenRanges.map(_.endpoints).reduce(_ ++ _).size
+        val splitter: TokenRangeSplitter[V, T] = createSplitterFor(tokenRanges)
+        val initialSplits: Seq[TokenRange] = splitsOf(tokenRanges, splitter, splitSize).toSeq
+
+        val rowCounts = for (tr ← initialSplits; rc ← tr.rowCount) yield rc
+        val rowCountPerNode = rowCounts.sum.toDouble / endpointCount.toDouble
+        val partitionsPerNode = Math.ceil(rowCountPerNode / splitSize.toDouble)
+        val rowCountPerPartition = Math.ceil(rowCountPerNode / partitionsPerNode).toInt + 1
+
+        val splits = splitsOf(tokenRanges, splitter, rowCountPerPartition / 10).toSeq
+
+        val clusterer = new TokenRangeClusterer[V, T](rowCountPerPartition, 10)
         val groups = clusterer.group(splits).toArray
 
         if (containsPartitionKey(whereClause)) {
