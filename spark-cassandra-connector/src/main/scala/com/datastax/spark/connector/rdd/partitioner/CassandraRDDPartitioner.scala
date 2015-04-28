@@ -161,7 +161,7 @@ class CassandraRDDPartitioner[V, T <: Token[V]](
         val splitter = createSplitterFor(tokenRanges)
         val splits = splitsOf(tokenRanges, splitter).toSeq
         val maxGroupSize = tokenRanges.size / endpointCount
-        val clusterer = new MergingTokenRangeClusterer[V, T](splitSize, maxGroupSize)
+        val clusterer = new TokenRangeClusterer3[V, T](splitSize, maxGroupSize)
         val groups = clusterer.group(splits).toArray
 
         if (containsPartitionKey(whereClause)) {
@@ -187,7 +187,7 @@ object CassandraRDDPartitioner {
   val MaxParallelism = 16
 
   /** How many token ranges to sample in order to estimate average number of rows per token */
-  val TokenRangeSampleSize = 16
+  val TokenRangeSampleSize = 128
 
   private val pool: ForkJoinPool = new ForkJoinPool(MaxParallelism)
 }

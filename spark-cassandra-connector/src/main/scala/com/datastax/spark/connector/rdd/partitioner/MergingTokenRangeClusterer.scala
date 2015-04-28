@@ -4,7 +4,7 @@ import java.net.InetAddress
 
 import scala.annotation.tailrec
 
-import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenRange}
+import com.datastax.spark.connector.rdd.partitioner.dht.{CassandraNode, Token, TokenRange}
 
 class MergingTokenRangeClusterer[V, T <: Token[V]](maxRowCountPerGroup: Long, maxGroupSize: Int = Int.MaxValue) {
 
@@ -102,18 +102,27 @@ class MergingTokenRangeClusterer[V, T <: Token[V]](maxRowCountPerGroup: Long, ma
     * Useful mostly with virtual nodes, which may create lots of small token range splits.
     * Each group will make a single Spark task. */
   def group(tokenRanges: Seq[TokenRange[V, T]]): Iterable[Seq[TokenRange[V, T]]] = {
+
+    val tokenRangesByEndpoint: Map[CassandraNode, Seq[TokenRange[V, T]]] =
+      (for (tokenRange ← tokenRanges; endpoint ← tokenRange.endpoints) yield (endpoint, tokenRange))
+        .groupBy(_._1).mapValues(_.map(_._2).sortBy(_.start)(Ordering.ordered[T](x => x.asInstanceOf[Comparable[T]])))
+
+
+
+
+
     // sort the token ranges by range start token
-    val rangesSortedByToken = tokenRanges.sortBy(_.start)(Ordering.ordered[T](x => x.asInstanceOf[Comparable[T]]))
+    val rangesSortedByToken: Seq[TokenRange[V, T]] = tokenRanges.sortBy(_.start)(Ordering.ordered[T](x => x.asInstanceOf[Comparable[T]]))
 
     // merge as much adjacent token ranges as possible, given that the merged ranges must have at least
     // a single common endpoint
-    val preMergedRanges = mergeAdjacent(rangesSortedByToken.toStream, Vector.empty)
+    val preMergedRanges: Vector[TokenRange[V, T]] = mergeAdjacent(rangesSortedByToken.toStream, Vector.empty)
 
     // group the merged token ranges by the first endpoint according to the defined InetAddressOrdering
-    val rangesGroupedByEndpoint = preMergedRanges.groupBy(_.endpoints.toSeq.sorted.head)
+    val rangesGroupedByEndpoint: Map[CassandraNode, Vector[TokenRange[V, T]]] = preMergedRanges.groupBy(_.endpoints.toSeq.sorted.head)
 
     // convert endpoint to list of token ranges map into a sequence of token range lists, each sorted by row count in descending order
-    val rangesInternallySortedByRowCountsDesc = rangesGroupedByEndpoint.toSeq.map(_._2.sortBy(tr => -tr.rowCount.get))
+    val rangesInternallySortedByRowCountsDesc: Seq[Vector[TokenRange[V, T]]] = rangesGroupedByEndpoint.toSeq.map(_._2.sortBy(tr => -tr.rowCount.get))
 
     // for each endpoint related list of token ranges, make groups with respect to the max group size and max row count per group
     rangesInternallySortedByRowCountsDesc.flatMap(tokenRanges => makeGroups(Nil, tokenRanges.toList, maxGroupSize, maxRowCountPerGroup))
