@@ -1,12 +1,12 @@
 package com.datastax.spark.connector.writer
 
-import com.datastax.spark.connector.CassandraRow
+import com.datastax.spark.connector.{ColumnRef, CassandraRow}
 import com.datastax.spark.connector.cql.TableDef
 
 /** A [[RowWriter]] that can write [[CassandraRow]] objects.*/
-class CassandraRowWriter(table: TableDef, selectedColumns: Seq[String]) extends RowWriter[CassandraRow] {
+class CassandraRowWriter(table: TableDef, selectedColumns: IndexedSeq[ColumnRef]) extends RowWriter[CassandraRow] {
 
-  val columnNames = selectedColumns
+  val columnNames = selectedColumns.map(_.columnName)
 
   override def readColumnValues(data: CassandraRow, buffer: Array[Any]) = {
     for ((c, i) <- columnNames.zipWithIndex)
@@ -18,8 +18,8 @@ class CassandraRowWriter(table: TableDef, selectedColumns: Seq[String]) extends 
 object CassandraRowWriter {
 
   object Factory extends RowWriterFactory[CassandraRow] {
-    override def rowWriter(table: TableDef, columnNames: Seq[String], aliasToColumnName: Map[String, String]) =
-      new CassandraRowWriter(table, columnNames)
+    override def rowWriter(table: TableDef, selectedColumns: IndexedSeq[ColumnRef]) =
+      new CassandraRowWriter(table, selectedColumns)
   }
 
 }

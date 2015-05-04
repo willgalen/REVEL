@@ -1,10 +1,12 @@
 package com.datastax.spark.connector.writer
 
+import com.datastax.spark.connector.ColumnRef
 import com.datastax.spark.connector.cql.TableDef
 import org.apache.spark.sql.catalyst.expressions.Row
 
 /** A [[RowWriter]] that can write SparkSQL `Row` objects. */
-class SqlRowWriter(val table: TableDef, val columnNames: Seq[String]) extends RowWriter[Row] {
+class SqlRowWriter(val table: TableDef, val selectedColumns: IndexedSeq[ColumnRef])
+  extends RowWriter[Row] {
 
   /** Extracts column values from `data` object and writes them into the given buffer
     * in the same order as they are listed in the columnNames sequence. */
@@ -13,14 +15,15 @@ class SqlRowWriter(val table: TableDef, val columnNames: Seq[String]) extends Ro
     for (i <- 0 until row.size)
       buffer(i) = row(i)
   }
+  override val columnNames = selectedColumns.map(_.columnName)
 }
 
 
 object SqlRowWriter {
 
   object Factory extends RowWriterFactory[Row] {
-    override def rowWriter(table: TableDef, columnNames: Seq[String], aliasToColumnName: Map[String, String]) =
-      new SqlRowWriter(table, columnNames)
+    override def rowWriter(table: TableDef, selectedColumns: IndexedSeq[ColumnRef]) =
+      new SqlRowWriter(table, selectedColumns)
   }
 
 }
