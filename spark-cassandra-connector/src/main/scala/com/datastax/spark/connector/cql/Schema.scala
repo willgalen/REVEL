@@ -12,6 +12,7 @@ import com.datastax.spark.connector.types.{CounterType, ColumnType}
 /** Abstract column / field definition.
   * Common to tables and user-defined types */
 trait FieldDef extends Serializable {
+  def ref: ColumnRef
   def columnName: String
   def columnType: ColumnType[_]
 }
@@ -36,6 +37,10 @@ trait StructDef extends Serializable {
     * The order of the columns is implementation-defined. */
   def columns: IndexedSeq[Column]
 
+  /** References to the columns */
+  lazy val columnRefs: IndexedSeq[ColumnRef] =
+    columns.map(_.ref)
+
   /** Names of the columns, in the same order as column definitions. */
   def columnNames: IndexedSeq[String] =
     columns.map(_.columnName)
@@ -59,6 +64,10 @@ trait StructDef extends Serializable {
     require(index >= 0 && index < columns.length, s"Column index $index out of bounds for $name")
     columns(index)
   }
+
+  /** Returns the columns that are not present in the structure. */
+  def missingColumns(columnsToCheck: Seq[ColumnRef]): Seq[ColumnRef] =
+    for (c <- columnsToCheck if !columnByName.contains(c.columnName)) yield c
 }
 
 
@@ -75,6 +84,7 @@ case class ColumnDef(
     columnType: ColumnType[_],
     indexed : Boolean = false) extends FieldDef {
 
+  def ref: ColumnRef = ColumnName(columnName)
   def isStatic = columnRole == StaticColumn
   def isCollection = columnType.isCollection
   def isPartitionKeyColumn = columnRole == PartitionKeyColumn
@@ -142,7 +152,7 @@ case class TableDef(
 
   /** Selects a subset of columns.
     * Columns are returned in the order specified in the `ColumnSelector`. */
-  def select(selector: ColumnSelector): Seq[ColumnDef] = {
+  def select(selector: ColumnSelector): IndexedSeq[ColumnDef] = {
     selector match {
       case AllColumns => columns
       case PartitionKeyColumns => partitionKey
@@ -153,7 +163,7 @@ case class TableDef(
           throw new IllegalArgumentException(s"Invalid column reference $columnRef for table $keyspaceName.$tableName")
       }
     }
-  }
+  }.toIndexedSeq
 }
 
 object TableDef {

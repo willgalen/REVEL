@@ -14,16 +14,11 @@ import com.datastax.spark.connector._
   * to a tuple or a case class object using the given `ColumnMapper`.
   *
   * @param structDef table or UDT definition to convert from
-  * @param indexToColumnName mapping from column indexes to column names;
-  *   used when the `ColumnMap` references columns by their ordinal number instead of names
-  *   e.g. when mapping to Scala tuples
-  * @param aliasToColumnName aliases given when selecting columns, used to obtain the
-  *   `ColumnMap` from the `ColumnMapper`
+  * @param columnSelection columns that have been selected from the struct
   */
 private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnMapper](
     structDef: StructDef,
-    indexToColumnName: Int => String,
-    aliasToColumnName: Map[String, String] = Map.empty)
+    columnSelection: IndexedSeq[ColumnRef])
   extends TypeConverter[T] {
 
   // can't be lazy, because TypeTags are not serializable, and if we made it lazy,
@@ -55,7 +50,7 @@ private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnM
     implicitly[ColumnMapper[T]].isInstanceOf[JavaBeanColumnMapper[_]]
 
   private val columnMap =
-    implicitly[ColumnMapper[T]].columnMap(structDef, aliasToColumnName)
+    implicitly[ColumnMapper[T]].columnMapForReading(structDef, columnSelection)
 
   /** Returns the column mapper associated with the given type.
     * Used to find column mappers for UDT columns.
@@ -91,7 +86,7 @@ private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnM
         TypeConverter.forType[U](Seq(argConverter))
       case (udt @ UserDefinedType(_, columns), _) =>
         implicit val cm: ColumnMapper[U] = columnMapper[U]
-        new GettableDataToMappedTypeConverter[U](udt, udt.columnNames)
+        new GettableDataToMappedTypeConverter[U](udt, udt.columnRefs)
       case (ListType(argColumnType), TypeRef(_, _, List(argScalaType))) =>
         val argConverter = converter(argColumnType, argScalaType)
         TypeConverter.forType[U](Seq(argConverter))
@@ -117,10 +112,7 @@ private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnM
 
   /** Reads the column name of the column pointed by given column reference. */
   private def columnName(columnRef: ColumnRef): String = {
-    columnRef match {
-      case SelectableColumnRef(selectedAs) => selectedAs
-      case ColumnIndex(index) => indexToColumnName(index)
-    }
+    columnRef.columnName
   }
 
   /** Returns the type of the column, basing on the struct definition. */
@@ -128,8 +120,6 @@ private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnM
     columnRef match {
       case ColumnName(columnName, _) =>
         structDef.columnByName(columnName).columnType
-      case ColumnIndex(i) =>
-        structDef.columnByName(indexToColumnName(i)).columnType
       case TTL(_, _) =>
         BigIntType
       case WriteTime(_, _) =>
@@ -141,12 +131,7 @@ private[connector] class GettableDataToMappedTypeConverter[T : TypeTag : ColumnM
 
   /** Reads the value of the given column from the input data, without applying any conversions. */
   private def columnValue(columnRef: ColumnRef, struct: GettableData): AnyRef = {
-    columnRef match {
-      case SelectableColumnRef(selectedAs) =>
-        struct.getRaw(selectedAs)
-      case ColumnIndex(i) =>
-        struct.getRaw(indexToColumnName(i))
-    }
+    struct.getRaw(columnRef.cqlValueName)
   }
 
   /** Tries to convert the value with the given converter and handles the error, if any */
