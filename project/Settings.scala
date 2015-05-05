@@ -20,8 +20,10 @@ import scala.language.postfixOps
 import sbt._
 import sbt.Keys._
 import sbtrelease.ReleasePlugin._
-import sbtassembly.Plugin._
-import AssemblyKeys._
+import sbtassembly._
+import sbtassembly.AssemblyPlugin._
+import sbtassembly.AssemblyKeys._
+import sbtsparkpackage.SparkPackagePlugin.autoImport._
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import com.typesafe.tools.mima.plugin.MimaPlugin._
 import com.typesafe.sbt.SbtScalariform
@@ -44,6 +46,15 @@ object Settings extends Build {
     versionStatus        := Versions.status(scalaVersion.value, scalaBinaryVersion.value)
   )
 
+  lazy val sparkPackageSettings = Seq(
+    spName := "datastax/spark-cassandra-connector",
+    sparkVersion := Versions.Spark,
+    spAppendScalaVersion := true,
+    spIncludeMaven := true,
+    spIgnoreProvided := true,
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
+  )
+
   override lazy val settings = super.settings ++ buildSettings ++ Seq(
     normalizedName := "spark-cassandra-connector",
     name := "DataStax Apache Cassandra connector for Apache Spark",
@@ -52,7 +63,7 @@ object Settings extends Build {
                   |A library that exposes Cassandra tables as Spark RDDs, writes Spark RDDs to
                   |Cassandra tables, and executes CQL queries in Spark applications.""".stringPrefix,
     homepage := Some(url("https://github.com/datastax/spark-cassandra-connector")),
-    licenses := Seq(("Apache License, Version 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
+    licenses := Seq(("Apache License 2.0", url("http://www.apache.org/licenses/LICENSE-2.0"))),
     promptTheme := ScalapenosTheme
   )
 
@@ -154,7 +165,7 @@ object Settings extends Build {
       println("All artifacts: " + allArtifacts.mkString(", "))
     }
   )
-  lazy val assembledSettings = defaultSettings ++ jarsInCluster ++ sbtAssemblySettings ++ Seq(
+  lazy val assembledSettings = defaultSettings ++ sparkPackageSettings ++ jarsInCluster ++ sbtAssemblySettings ++ Seq(
     javaOptions in ClusterIntegrationTest ++= Seq(s"-Dspark.jars=${allArtifacts.mkString(",")}")
   )
 
@@ -219,7 +230,7 @@ object Settings extends Build {
     jarName in assembly <<= (baseDirectory, version) map { (dir, version) => s"${dir.name}-assembly-$version.jar" },
     run in Compile <<= Defaults.runTask(fullClasspath in Compile, mainClass in (Compile, run), runner in (Compile, run)),
     assemblyOption in assembly ~= { _.copy(includeScala = false) },
-    mergeStrategy in assembly <<= (mergeStrategy in assembly) {
+    assemblyMergeStrategy in assembly <<= (assemblyMergeStrategy in assembly) {
       (old) => {
         case PathList("com", "google", xs @ _*) => MergeStrategy.last
         case x => old(x)
