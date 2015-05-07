@@ -3,17 +3,15 @@ package com.datastax.spark.connector.rdd
 import java.io.IOException
 import java.util.Date
 
-import com.datastax.spark.connector.mapper.DefaultColumnMapper
-import com.datastax.spark.connector.testkit.SharedEmbeddedCassandra
-import org.scalatest.{FlatSpec, Matchers}
-import org.joda.time.DateTime
-import com.datastax.spark.connector._
-import com.datastax.spark.connector.cql.CassandraConnector
-import com.datastax.spark.connector.types.TypeConverter
-import com.datastax.spark.connector.embedded._
-
 import scala.reflect.runtime.universe.typeTag
 
+import org.joda.time.DateTime
+
+import com.datastax.spark.connector._
+import com.datastax.spark.connector.cql.CassandraConnector
+import com.datastax.spark.connector.embedded._
+import com.datastax.spark.connector.mapper.DefaultColumnMapper
+import com.datastax.spark.connector.types.TypeConverter
 
 case class KeyValue(key: Int, group: Long, value: String)
 case class KeyValueWithConversion(key: String, group: Int, value: Long)
@@ -41,6 +39,9 @@ class SuperKeyValue extends Serializable {
 class SubKeyValue extends SuperKeyValue {
   var group: Long = 0L
 }
+
+case class Address(street: String, city: String, zip: Int)
+case class ClassWithUDT(key: Int, name: String, addr: Address)
 
 class CassandraRDDSpec extends SparkCassandraITFlatSpecBase {
 
@@ -372,7 +373,7 @@ class CassandraRDDSpec extends SparkCassandraITFlatSpecBase {
     row.getString(1) should be("name")
   }
 
-  it should "allow to fetch UDT columns" in {
+  it should "allow to fetch UDT columns as UDTValue objects" in {
     val result = sc.cassandraTable("read_test", "udts").select("key", "name", "addr").collect()
     result should have length 1
     val row = result.head
@@ -384,6 +385,19 @@ class CassandraRDDSpec extends SparkCassandraITFlatSpecBase {
     udtValue.getString("street") should be("Some Street")
     udtValue.getString("city") should be("Paris")
     udtValue.getInt("zip") should be(11120)
+  }
+
+  it should "allow to fetch UDT columns as objects of case classes" in {
+    val result = sc.cassandraTable[ClassWithUDT]("read_test", "udts").select("key", "name", "addr").collect()
+    result should have length 1
+    val row = result.head
+    row.key should be(1)
+    row.name should be("name")
+
+    val udtValue = row.addr
+    udtValue.street should be("Some Street")
+    udtValue.city should be("Paris")
+    udtValue.zip should be(11120)
   }
 
   it should "throw appropriate IOException when the table was not found at the computation time" in {
