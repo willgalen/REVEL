@@ -15,14 +15,23 @@ class RandomPartitionerTokenRangeSplitter(cassandraPartitionsPerToken: Double) e
     if (token <= max) token else token - max
   }
 
-  def split(range: TokenRange[BigInt, BigIntToken], splitSize: Long) = {
+  def splitParts (range: TokenRange[BigInt, BigIntToken], numPartitiins: Int): Unit = {
+    val left = range.start.value
+    val right = range.end.value
+    val rangeSize =
+      if (right > left) BigDecimal(right - left)
+      else BigDecimal(right - left + tokenFactory.totalTokenCount)
+
+  }
+
+  def split(range: TokenRange[BigInt, BigIntToken], splitSize: Long, numPartitions: Option[Int] = None) = {
     val left = range.start.value
     val right = range.end.value
     val rangeSize =
       if (right > left) BigDecimal(right - left)
       else BigDecimal(right - left + tokenFactory.totalTokenCount)
     val estimatedRows = rangeSize * cassandraPartitionsPerToken
-    val n = math.max(1, (estimatedRows / splitSize).setScale(0, RoundingMode.HALF_UP).toInt)
+    val n = numPartitions.getOrElse(math.max(1, (estimatedRows / splitSize).setScale(0, RoundingMode.HALF_UP).toInt))
     val splitPoints =
       (for (i <- 0 until n) yield wrap(left + (rangeSize * i.toDouble / n).toBigInt)) :+ right
     for (Seq(l, r) <- splitPoints.sliding(2).toSeq) yield

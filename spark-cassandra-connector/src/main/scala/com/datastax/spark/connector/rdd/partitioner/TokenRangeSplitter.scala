@@ -7,7 +7,7 @@ import com.datastax.spark.connector.rdd.partitioner.dht.{Token, TokenRange}
 trait TokenRangeSplitter[V, T <: Token[V]] {
 
   /** Splits given token range into n equal sub-ranges. */
-  def split(range: TokenRange[V, T], splitSize: Long): Seq[TokenRange[V, T]]
+  def split(range: TokenRange[V, T], splitSize: Long, numPartitions: Option[Int] = None): Seq[TokenRange[V, T]]
 }
 
 

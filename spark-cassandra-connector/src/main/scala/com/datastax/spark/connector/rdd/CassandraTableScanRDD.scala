@@ -2,6 +2,8 @@ package com.datastax.spark.connector.rdd
 
 import java.io.IOException
 
+import org.apache.spark.rdd.RDD
+
 import scala.collection.JavaConversions._
 import scala.language.existentials
 import scala.reflect.ClassTag
@@ -63,6 +65,7 @@ class CassandraTableScanRDD[R] private[connector](
     val columnNames: ColumnSelector = AllColumns,
     val where: CqlWhereClause = CqlWhereClause.empty,
     val limit: Option[Long] = None,
+    val numPartitions: Option[Int] = None,
     val clusteringOrder: Option[ClusteringOrder] = None,
     val readConf: ReadConf = ReadConf())(
   implicit
@@ -77,6 +80,7 @@ class CassandraTableScanRDD[R] private[connector](
     columnNames: ColumnSelector = columnNames,
     where: CqlWhereClause = where,
     limit: Option[Long] = limit,
+    numPartitions: Option[Int] = numPartitions,
     clusteringOrder: Option[ClusteringOrder] = None,
     readConf: ReadConf = readConf,
     connector: CassandraConnector = connector): Self = {
@@ -96,6 +100,7 @@ class CassandraTableScanRDD[R] private[connector](
       columnNames = columnNames,
       where = where,
       limit = limit,
+      numPartitions = numPartitions,
       clusteringOrder = clusteringOrder,
       readConf = readConf)
   }
@@ -113,10 +118,34 @@ class CassandraTableScanRDD[R] private[connector](
       readConf = readConf)
   }
 
+  /**
+   * The method does not create  CoalesceRDD, but reduce number of parittions to read from Cassandra
+   * so it turn off partition size calcutlation and ignore spark.cassandra.input.split.size
+   * The method is useful with where() method call, when actual size of data is small then the table size
+   * Has no effect if partition key is used in where clause.
+   *
+   * @param numPartitions
+   * @param shuffle
+   * @param ord
+   * @return
+   */
+
+  override def coalesce(numPartitions: Int, shuffle: Boolean = false)(implicit ord: Ordering[R] = null)
+  : RDD[R] = {
+    val rdd  = copy (numPartitions = Some(numPartitions))
+    if(shuffle) {
+      rdd.superCoalesce(numPartitions, shuffle)
+    } else {
+      rdd
+    }
+  }
+  private def superCoalesce(numPartitions: Int, shuffle: Boolean = false)(implicit ord: Ordering[R] = null) =
+    super.coalesce(numPartitions,shuffle);
+
   override def getPartitions: Array[Partition] = {
     verify() // let's fail fast
     val tf = TokenFactory.forCassandraPartitioner(cassandraPartitionerClassName)
-    val partitions = new CassandraRDDPartitioner(connector, tableDef, splitSize)(tf).partitions(where)
+    val partitions = new CassandraRDDPartitioner(connector, tableDef, splitSize)(tf).partitions(where, numPartitions)
     logDebug(s"Created total ${partitions.length} partitions for $keyspaceName.$tableName.")
     logTrace("Partitions: \n" + partitions.mkString("\n"))
     partitions
@@ -239,6 +268,7 @@ class CassandraTableScanRDD[R] private[connector](
         columnNames = SomeColumns(RowCountRef),
         where = where,
         limit = limit,
+        numPartitions = numPartitions,
         clusteringOrder = clusteringOrder,
         readConf = readConf)
 

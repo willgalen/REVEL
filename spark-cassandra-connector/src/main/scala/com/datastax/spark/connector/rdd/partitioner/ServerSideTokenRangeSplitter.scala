@@ -39,7 +39,7 @@ class ServerSideTokenRangeSplitter[V, T <: Token[V]](
     }
   }
 
-  def split(range: TokenRange[V, T], splitSize: Long) = {
+  def split(range: TokenRange[V, T], splitSize: Long, numPartitions: Option[Int] = None) = {
     val fetchResults =
       for (endpoint <- range.endpoints.toStream)
       yield Try(fetchSplits(range, endpoint.rpcAddress, splitSize))

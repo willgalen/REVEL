@@ -10,14 +10,14 @@ class Murmur3PartitionerTokenRangeSplitter(cassandraPartitionsPerToken: Double) 
   private val tokenFactory =
     TokenFactory.Murmur3TokenFactory
 
-  def split(range: TokenRange[Long, LongToken], splitSize: Long) = {
+  def split(range: TokenRange[Long, LongToken], splitSize: Long, numPartitions: Option[Int] = None) = {
     val left = range.start.value
     val right = range.end.value
     val rangeSize =
       if (right > left) BigDecimal(right) - BigDecimal(left)
       else BigDecimal(right) - BigDecimal(left) + BigDecimal(tokenFactory.totalTokenCount)
     val estimatedRows = rangeSize * cassandraPartitionsPerToken
-    val n = math.max(1, (estimatedRows / splitSize).setScale(0, RoundingMode.HALF_UP).toInt)
+    val n = numPartitions.getOrElse(math.max(1, (estimatedRows / splitSize).setScale(0, RoundingMode.HALF_UP).toInt))
     val splitPoints =
       (for (i <- 0 until n) yield left + (rangeSize * i.toDouble / n).toLong) :+ right
     for (Seq(l, r) <- splitPoints.sliding(2).toSeq) yield
